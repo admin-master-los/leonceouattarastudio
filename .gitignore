@@ -1,0 +1,307 @@
+# ========================================
+# .gitignore pour projet-lOS
+# React + TypeScript + Vite + Supabase
+# ========================================
+
+# ==================== SECRETS & ENVIRONNEMENT ====================
+# CRITIQUE : Ne JAMAIS commiter ces fichiers !
+
+# Fichiers d'environnement contenant les clés API
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+
+# Anciens fichiers env (backup)
+.env.*.backup
+.env.*.old
+*.env.backup
+*.env.old
+
+# Fichiers de configuration secrets
+secrets.json
+config.secret.js
+credentials.json
+
+# ==================== NODE & DEPENDENCIES ====================
+
+# Node modules (dépendances installées)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Fichiers de verrouillage optionnels
+# Note: Décommente si tu utilises yarn ou pnpm
+# yarn.lock
+# pnpm-lock.yaml
+
+# Cache npm
+.npm
+.eslintcache
+
+# ==================== BUILD & DIST ====================
+
+# Fichiers de build Vite
+dist/
+dist-ssr/
+build/
+.vite/
+
+# Cache de build
+.cache/
+.parcel-cache/
+.next/
+.nuxt/
+
+# ==================== VERCEL ====================
+
+# Vercel
+.vercel
+.vercel.json
+
+# Vercel CLI
+.vercel
+
+# ==================== EDITOR & IDE ====================
+
+# VS Code
+.vscode/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.history/
+
+# JetBrains (WebStorm, IntelliJ)
+.idea/
+*.iml
+*.ipr
+*.iws
+.idea_modules/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+.*.swp
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# ==================== MACOS ====================
+
+# MacOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# ==================== WINDOWS ====================
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# ==================== LINUX ====================
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ==================== LOGS ====================
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Logs runtime
+combined.log
+error.log
+exceptions.log
+
+# ==================== TESTS ====================
+
+# Coverage
+coverage/
+*.lcov
+.nyc_output/
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.tox/
+
+# Test files temporaires
+test-results/
+playwright-report/
+test-output/
+
+# ==================== TYPESCRIPT ====================
+
+# TypeScript
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# ==================== DATABASES ====================
+
+# SQLite (si utilisé localement)
+*.sqlite
+*.sqlite3
+*.db
+
+# PostgreSQL dumps
+*.sql
+*.dump
+
+# ==================== SUPABASE ====================
+
+# Supabase local (si tu utilises le CLI)
+.supabase/
+supabase/functions/.env
+
+# ==================== ASSETS TEMPORAIRES ====================
+
+# Fichiers temporaires
+tmp/
+temp/
+*.tmp
+*.temp
+.temp/
+.tmp/
+
+# Uploads temporaires
+uploads/
+upload/
+
+# Cache images
+.image-cache/
+thumbs/
+
+# ==================== BACKUPS ====================
+
+# Fichiers de backup
+*.backup
+*.bak
+*.old
+*.orig
+*~
+.backup/
+backups/
+
+# ==================== MISC ====================
+
+# OS generated files
+.Spotlight-V100
+.Trashes
+Icon?
+
+# Archives
+*.zip
+*.tar
+*.tar.gz
+*.rar
+*.7z
+
+# Fichiers temporaires de l'éditeur
+*.sw?
+.sw?
+
+# Yarn
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+.pnp.*
+
+# ==================== PROJET SPÉCIFIQUE ====================
+
+# Fichiers de développement locaux
+dev-notes.md
+TODO.md
+NOTES.md
+scratch/
+
+# Fichiers de test
+test-data/
+mock-data/
+
+# Documentation générée automatiquement
+docs/api/
+api-docs/
+
+# Storybook
+storybook-static/
+
+# ==================== SÉCURITÉ ADDITIONNELLE ====================
+
+# Fichiers contenant potentiellement des secrets
+*secret*
+*password*
+*credentials*
+*private*
+*.pem
+*.key
+*.cert
+*.crt
+*.p12
+*.pfx
+
+# Tokens et clés
+.token
+.api-key
+serviceAccountKey.json
+
+# ==================== FIN ====================
+
+# Note: Fichiers à TOUJOURS commiter :
+# - .env.example (template sans valeurs sensibles)
+# - package.json
+# - package-lock.json (ou yarn.lock)
+# - tsconfig.json
+# - vite.config.ts
+# - README.md
