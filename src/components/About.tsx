@@ -1,10 +1,9 @@
-import React from 'react';
-import * as LucideIcons from 'lucide-react';
-import { CheckCircle, Award, Code2, Lightbulb, Shield } from 'lucide-react';
-import { useSkills } from '../lib/useSupabaseData';
+import React, { useState } from 'react';
+import { CheckCircle, Award, Code2, Lightbulb, Shield, Zap, Target, Rocket, TrendingUp, Users, Lock, Cpu } from 'lucide-react';
 
 const About: React.FC = () => {
-  const { data: skills, loading } = useSkills();
+  const [activePhase, setActivePhase] = useState(0);
+
   const values = [
     {
       icon: Code2,
@@ -37,6 +36,92 @@ const About: React.FC = () => {
     { number: '50+', label: 'Projets réalisés' },
     { number: '100%', label: 'Clients satisfaits' },
     { number: '24/7', label: 'Support technique' },
+  ];
+
+  // Processus de transformation digitale (remplace Skills)
+  const transformationPhases = [
+    {
+      id: 1,
+      icon: Target,
+      title: 'Diagnostic & Stratégie',
+      subtitle: 'Analyse de vos besoins métier',
+      description: 'Audit approfondi de vos processus actuels, identification des points de friction et définition des objectifs de transformation.',
+      benefits: [
+        'Cartographie des processus existants',
+        'Identification des opportunités d\'automatisation',
+        'Feuille de route personnalisée',
+        'ROI estimé et KPIs définis'
+      ],
+      color: 'from-cyan-500 to-blue-500',
+      duration: '1-2 semaines'
+    },
+    {
+      id: 2,
+      icon: Cpu,
+      title: 'Conception & Architecture',
+      subtitle: 'Design de solutions robustes',
+      description: 'Conception technique détaillée avec choix des technologies optimales pour vos contraintes métier et techniques.',
+      benefits: [
+        'Architecture scalable et sécurisée',
+        'Choix technologiques justifiés',
+        'Maquettes fonctionnelles',
+        'Spécifications techniques complètes'
+      ],
+      color: 'from-purple-500 to-pink-500',
+      duration: '2-3 semaines'
+    },
+    {
+      id: 3,
+      icon: Rocket,
+      title: 'Développement & Tests',
+      subtitle: 'Réalisation et validation',
+      description: 'Développement itératif avec tests continus, démonstrations régulières et ajustements en temps réel selon vos retours.',
+      benefits: [
+        'Méthodologie agile',
+        'Tests automatisés (TDD)',
+        'Démos hebdomadaires',
+        'Code review systématique'
+      ],
+      color: 'from-green-500 to-teal-500',
+      duration: '4-12 semaines'
+    },
+    {
+      id: 4,
+      icon: TrendingUp,
+      title: 'Déploiement & Formation',
+      subtitle: 'Mise en production accompagnée',
+      description: 'Déploiement progressif avec formation de vos équipes, documentation complète et support au démarrage.',
+      benefits: [
+        'Migration sans interruption',
+        'Formation utilisateurs & admins',
+        'Documentation détaillée',
+        'Assistance au démarrage (1 mois)'
+      ],
+      color: 'from-orange-500 to-red-500',
+      duration: '1-2 semaines'
+    }
+  ];
+
+  // Garanties et différenciateurs
+  const guarantees = [
+    {
+      icon: Lock,
+      title: 'Sécurité & Conformité',
+      description: 'RGPD, ISO 27001, chiffrement bout-en-bout',
+      color: 'bg-cyan-500/10 border-cyan-500/30'
+    },
+    {
+      icon: Zap,
+      title: 'Performance Garantie',
+      description: 'Temps de chargement < 2s, 99.9% uptime SLA',
+      color: 'bg-purple-500/10 border-purple-500/30'
+    },
+    {
+      icon: Users,
+      title: 'Formation Incluse',
+      description: 'Workshops et documentation pour vos équipes',
+      color: 'bg-green-500/10 border-green-500/30'
+    }
   ];
 
   return (
@@ -179,61 +264,122 @@ const About: React.FC = () => {
           ))}
         </div>
 
-        {/* Skills Section */}
-        <div className="bg-white/5 backdrop-blur-sm border border-cyan-500/20 rounded-2xl p-8">
-          <h3 className="text-2xl font-bold text-white mb-8 text-center">
-            Expertises Techniques
-          </h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {!loading && skills.map((skill, index) => {
-              // Mapping des icônes selon les technologies
-              const getSkillIcon = (skillName: string) => {
-                if (
-                  skillName.includes('React') ||
-                  skillName.includes('TypeScript')
-                )
-                  return 'Code2';
-                if (
-                  skillName.includes('Node.js') ||
-                  skillName.includes('Express')
-                )
-                  return 'Server';
-                if (
-                  skillName.includes('Python') ||
-                  skillName.includes('Django')
-                )
-                  return 'Terminal';
-                if (skillName.includes('Vue.js') || skillName.includes('Nuxt'))
-                  return 'Layers';
-                if (skillName.includes('PHP') || skillName.includes('Laravel'))
-                  return 'Globe';
-                if (skillName.includes('Database')) return 'Database';
-                if (skillName.includes('Cloud')) return 'Cloud';
-                if (skillName.includes('UX/UI') || skillName.includes('Design'))
-                  return 'Palette';
-                return 'Code2'; // Icône par défaut
-              };
-
-              const iconName = getSkillIcon(skill.name);
-              const IconComponent =
-                LucideIcons[iconName as keyof typeof LucideIcons] ||
-                LucideIcons.Code2;
-
-              return (
-                <div
-                  key={index}
-                  className="bg-white/5 backdrop-blur-sm border border-gray-700/50 rounded-xl p-4 hover:border-cyan-500/50 hover:bg-white/10 transition-all duration-300 group hover:scale-105 text-center"
-                >
-                  <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-purple-500 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 group-hover:rotate-12 transition-all duration-500">
-                    <IconComponent size={24} className="text-white" />
-                  </div>
-                  <h4 className="text-white font-medium text-sm group-hover:text-cyan-400 transition-colors duration-300">
-                    {skill.name}
-                  </h4>
-                </div>
-              );
-            })}
+        {/* Transformation Process - REMPLACE SKILLS SECTION */}
+        <div className="mb-16">
+          <div className="text-center mb-12">
+            <h3 className="text-3xl md:text-4xl font-bold text-white mb-4">
+              Notre{' '}
+              <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+                Processus
+              </span>{' '}
+              de Transformation
+            </h3>
+            <p className="text-gray-400 max-w-2xl mx-auto">
+              Une méthodologie éprouvée en 4 phases pour digitaliser et optimiser vos processus métier
+            </p>
           </div>
+
+          {/* Timeline Navigation */}
+          <div className="flex justify-center mb-12 overflow-x-auto pb-4">
+            <div className="inline-flex gap-4">
+              {transformationPhases.map((phase, index) => (
+                <button
+                  key={phase.id}
+                  onClick={() => setActivePhase(index)}
+                  className={`relative px-6 py-3 rounded-full transition-all duration-300 whitespace-nowrap ${
+                    activePhase === index
+                      ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow-lg shadow-cyan-500/50'
+                      : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <span className="font-bold">{phase.id}</span>
+                    <span className="hidden sm:inline">{phase.title}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Active Phase Details */}
+          <div className="bg-white/5 backdrop-blur-sm border border-cyan-500/20 rounded-3xl p-8 md:p-12">
+            {transformationPhases.map((phase, index) => (
+              <div
+                key={phase.id}
+                className={`transition-all duration-500 ${
+                  activePhase === index ? 'block' : 'hidden'
+                }`}
+              >
+                {/* Phase Header */}
+                <div className="flex items-start gap-6 mb-8">
+                  <div className={`w-20 h-20 bg-gradient-to-r ${phase.color} rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg`}>
+                    <phase.icon size={40} className="text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h4 className="text-3xl font-bold text-white">
+                        {phase.title}
+                      </h4>
+                      <span className="px-3 py-1 bg-cyan-500/20 border border-cyan-500/30 rounded-full text-xs text-cyan-400 font-medium">
+                        {phase.duration}
+                      </span>
+                    </div>
+                    <p className="text-xl text-gray-400 mb-4">{phase.subtitle}</p>
+                    <p className="text-gray-300 leading-relaxed">{phase.description}</p>
+                  </div>
+                </div>
+
+                {/* Benefits Grid */}
+                <div className="grid md:grid-cols-2 gap-4">
+                  {phase.benefits.map((benefit, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-start gap-3 bg-white/5 rounded-xl p-4 hover:bg-white/10 transition-colors duration-300"
+                    >
+                      <CheckCircle size={20} className="text-cyan-400 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-300">{benefit}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Progress Indicator */}
+                <div className="mt-8 flex items-center gap-2">
+                  {transformationPhases.map((_, idx) => (
+                    <div
+                      key={idx}
+                      className={`h-1 flex-1 rounded-full transition-all duration-500 ${
+                        idx === activePhase
+                          ? 'bg-gradient-to-r from-cyan-500 to-purple-500'
+                          : idx < activePhase
+                          ? 'bg-cyan-500/50'
+                          : 'bg-gray-700'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Guarantees Section */}
+        <div className="grid md:grid-cols-3 gap-6">
+          {guarantees.map((guarantee, index) => (
+            <div
+              key={index}
+              className={`${guarantee.color} border backdrop-blur-sm rounded-2xl p-6 hover:scale-105 transition-all duration-300`}
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-purple-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <guarantee.icon size={24} className="text-white" />
+                </div>
+                <div>
+                  <h4 className="text-white font-semibold mb-2">{guarantee.title}</h4>
+                  <p className="text-gray-400 text-sm">{guarantee.description}</p>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </section>

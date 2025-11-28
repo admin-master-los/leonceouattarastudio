@@ -122,7 +122,6 @@ function App() {
                           <Sectors />
                           <Portfolio />
                           <WhyChooseUs />
-                          <Process />
                           <Blog />
                           <Contact />
                         </main>

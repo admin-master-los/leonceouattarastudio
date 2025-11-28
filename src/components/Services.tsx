@@ -6,10 +6,68 @@ const Services: React.FC = () => {
   const { data: services, loading } = useServices();
   const [hoveredService, setHoveredService] = useState<string | null>(null);
 
-  const getIcon = (iconName: string) => {
-    const IconComponent = LucideIcons[iconName as keyof typeof LucideIcons];
-    return IconComponent || LucideIcons.Code2;
+  /**
+   * Convertit le nom d'icône de kebab-case vers PascalCase
+   * Exemples:
+   * - "globe" → "Globe"
+   * - "trending-up" → "TrendingUp"
+   * - "credit-card" → "CreditCard"
+   */
+  const kebabToPascalCase = (str: string): string => {
+    return str
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join('');
   };
+
+  /**
+   * Récupère le composant d'icône Lucide depuis le nom stocké en base
+   * Gère les formats: kebab-case, PascalCase, lowercase
+   */
+  const getIcon = (iconName: string) => {
+    if (!iconName) {
+      console.warn('⚠️ Aucun nom d\'icône fourni, utilisation de Code par défaut');
+      return LucideIcons.Code;
+    }
+
+    // Nettoyer le nom de l'icône (supprimer espaces)
+    const cleanIconName = iconName.trim();
+    
+    // Convertir en PascalCase (au cas où c'est en kebab-case)
+    const pascalCaseName = kebabToPascalCase(cleanIconName);
+    
+    // Essayer de récupérer l'icône depuis Lucide
+    let IconComponent = LucideIcons[pascalCaseName as keyof typeof LucideIcons];
+    
+    // Si pas trouvé, essayer le nom original (au cas où c'était déjà en PascalCase)
+    if (!IconComponent && cleanIconName !== pascalCaseName) {
+      IconComponent = LucideIcons[cleanIconName as keyof typeof LucideIcons];
+    }
+    
+    if (!IconComponent) {
+      console.warn(
+        `⚠️ Icône "${cleanIconName}" (converti en "${pascalCaseName}") introuvable dans Lucide React.`,
+        `Vérifiez sur https://lucide.dev/icons`
+      );
+      return LucideIcons.Code;
+    }
+
+    // Debug: afficher l'icône chargée
+    console.log(`✅ Icône "${cleanIconName}" → "${pascalCaseName}" chargée avec succès`);
+    return IconComponent;
+  };
+
+  // Debug: afficher les services chargés
+  if (!loading && services.length > 0) {
+    console.log('📊 Services chargés depuis Supabase:', 
+      services.map(s => ({ 
+        id: s.id, 
+        title: s.title, 
+        icon: s.icon,
+        iconConverted: kebabToPascalCase(s.icon)
+      }))
+    );
+  }
 
   return (
     <section id="services" className="py-20 relative">
@@ -26,6 +84,14 @@ const Services: React.FC = () => {
             Solutions complètes pour digitaliser et optimiser votre activité
           </p>
         </div>
+
+        {/* Loading state */}
+        {loading && (
+          <div className="text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500"></div>
+            <p className="text-gray-400 mt-4">Chargement des services...</p>
+          </div>
+        )}
 
         {/* Services Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -117,6 +183,13 @@ const Services: React.FC = () => {
             );
           })}
         </div>
+
+        {/* Empty state */}
+        {!loading && services.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-gray-400">Aucun service disponible pour le moment.</p>
+          </div>
+        )}
 
         {/* Call to Action */}
         <div className="text-center mt-16">
