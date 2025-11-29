@@ -12,7 +12,7 @@ const Confidentialite: React.FC = () => {
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2 group">
               <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-purple-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">LOS</span>
+                <span className="text-white font-bold text-sm">lOS</span>
               </div>
               <span className="text-lg font-semibold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
                 Leonce Ouattara Studio
@@ -71,7 +71,7 @@ const Confidentialite: React.FC = () => {
                   <h2 className="text-2xl font-bold mb-3 text-white">Introduction</h2>
                   <div className="space-y-3 text-gray-300 leading-relaxed">
                     <p>
-                      Leonce Ouattara Studio (ci-après "LOS", "nous", "notre") s'engage à protéger la confidentialité 
+                      Leonce Ouattara Studio (ci-après "lOS", "nous", "notre") s'engage à protéger la confidentialité 
                       et la sécurité des données personnelles de ses clients, prospects, et utilisateurs de son site web 
                       (ci-après "vous", "utilisateur").
                     </p>
@@ -97,7 +97,7 @@ const Confidentialite: React.FC = () => {
                 <div className="flex-1">
                   <h2 className="text-2xl font-bold mb-4 text-white">Données Collectées</h2>
                   
-                  <h3 className="text-lg font-semibold mb-3 text-cyan-400">1.1 Données d'identification</h3>
+                  <h3 className="text-lg font-semibold mb-3 text-cyan-400">1.1 Données d'identification (Collecte sur notre site)</h3>
                   <ul className="space-y-2 text-gray-300 mb-6 pl-4">
                     <li className="flex items-start gap-2">
                       <span className="text-cyan-400 mt-1">•</span>
@@ -121,7 +121,7 @@ const Confidentialite: React.FC = () => {
                     </li>
                   </ul>
 
-                  <h3 className="text-lg font-semibold mb-3 text-cyan-400">1.2 Données de connexion</h3>
+                  <h3 className="text-lg font-semibold mb-3 text-cyan-400">1.2 Données de connexion (Collecte Analytique Google)</h3>
                   <ul className="space-y-2 text-gray-300 mb-6 pl-4">
                     <li className="flex items-start gap-2">
                       <span className="text-cyan-400 mt-1">•</span>
@@ -141,7 +141,7 @@ const Confidentialite: React.FC = () => {
                     </li>
                   </ul>
 
-                  <h3 className="text-lg font-semibold mb-3 text-cyan-400">1.3 Données de projet</h3>
+                  <h3 className="text-lg font-semibold mb-3 text-cyan-400">1.3 Données de projet (Collecte sur notre site)</h3>
                   <ul className="space-y-2 text-gray-300 pl-4">
                     <li className="flex items-start gap-2">
                       <span className="text-cyan-400 mt-1">•</span>

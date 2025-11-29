@@ -91,8 +91,8 @@ const BookingContent: React.FC = () => {
           <div className="text-center mt-12 text-gray-500 text-sm">
             <p>
               Une question ? Contactez-nous à{' '}
-              <a href="mailto:contact@example.com" className="text-cyan-400 hover:underline">
-                contact@example.com
+              <a href="mailto:contact@leonceouattarastudiogroup.site" className="text-cyan-400 hover:underline">
+                contact@leonceouattarastudiogroup.site
               </a>
             </p>
           </div>
