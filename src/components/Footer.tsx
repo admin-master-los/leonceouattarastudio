@@ -1,8 +1,14 @@
-import React from 'react';
-import { Github, Linkedin, Mail, Phone, MapPin, Shield } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Facebook, Linkedin, Mail, Phone, MapPin, Shield } from 'lucide-react';
+import { useNavigation, useServices } from '../lib/useSupabaseData';
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
+  const { data: navigation } = useNavigation();
+  const { data: services } = useServices();
+  const [hoveredService, setHoveredService] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true)
 
   const scrollToSection = (href: string) => {
     const element = document.querySelector(href);
@@ -32,7 +38,7 @@ const Footer: React.FC = () => {
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-gray-400">
                 <Mail size={16} />
-                <span>contact@leonceouattarastudiogroup.com</span>
+                <span>contact@leonceouattarastudiogroup.site</span>
               </div>
               <div className="flex items-center gap-3 text-gray-400">
                 <Phone size={16} />
@@ -47,18 +53,18 @@ const Footer: React.FC = () => {
             {/* Social Links */}
             <div className="flex gap-4 mt-6">
               <a
-                href="https://github.com"
+                href="https://www.facebook.com/leonceouattarastudio"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 bg-white/5 border border-gray-700/50 rounded-full flex items-center justify-center hover:border-cyan-500/50 hover:bg-cyan-500/20 transition-all duration-300 group"
               >
-                <Github
+                <Facebook
                   size={18}
                   className="text-gray-400 group-hover:text-cyan-400"
                 />
               </a>
               <a
-                href="https://linkedin.com"
+                href="https://www.linkedin.com/company/leonceouattarastudio/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 bg-white/5 border border-gray-700/50 rounded-full flex items-center justify-center hover:border-cyan-500/50 hover:bg-cyan-500/20 transition-all duration-300 group"
@@ -75,15 +81,7 @@ const Footer: React.FC = () => {
           <div>
             <h4 className="text-white font-semibold mb-4">Navigation</h4>
             <ul className="space-y-3">
-              {[
-                { label: 'Accueil', href: '#home' },
-                { label: 'À Propos', href: '#about' },
-                { label: 'Services', href: '#services' },
-                { label: 'Secteurs', href: '#sectors' },
-                { label: 'Projets', href: '#portfolio' },
-                { label: 'Blog', href: '#blog' },
-                { label: 'Contact', href: '#contact' },
-              ].map((item) => (
+              {navigation.map((item) => (
                 <li key={item.href}>
                   <button
                     onClick={() => scrollToSection(item.href)}
@@ -100,16 +98,9 @@ const Footer: React.FC = () => {
           <div>
             <h4 className="text-white font-semibold mb-4">Services</h4>
             <ul className="space-y-3">
-              {[
-                'Développement Web',
-                'Applications Métier',
-                'Stratégie Digitale',
-                'UX/UI Design',
-                'Architecture Cloud',
-                'Consulting IT',
-              ].map((service) => (
-                <li key={service}>
-                  <span className="text-gray-400">{service}</span>
+              {services.map((service) => (
+                <li key={service.id}>
+                  <span className="text-gray-400">{service.title}</span>
                 </li>
               ))}
             </ul>
@@ -129,17 +120,19 @@ const Footer: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex gap-6 text-sm">
-              {['Mentions légales', 'Confidentialité', 'CGV', 'RGPD'].map(
-                (link) => (
-                  <button
-                    key={link}
-                    className="text-gray-400 hover:text-cyan-400 transition-colors duration-300"
-                  >
-                    {link}
-                  </button>
-                )
-              )}
+            <div className="flex flex-wrap gap-6 text-sm justify-center md:justify-end">
+              <Link
+                to="/confidentialite"
+                className="text-gray-400 hover:text-cyan-400 transition-colors duration-300"
+              >
+                Confidentialité
+              </Link>
+              <Link
+                to="/rgpd"
+                className="text-gray-400 hover:text-cyan-400 transition-colors duration-300"
+              >
+                RGPD
+              </Link>
             </div>
           </div>
         </div>

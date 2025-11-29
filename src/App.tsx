@@ -81,6 +81,11 @@ import Sitemap from './pages/Sitemap';
 import ScrollToTop from './components/ScrollToTop';
 import { NotificationProvider } from './contexts/NotificationContext';
 
+
+// 🆕 Pages Légales
+import Confidentialite from './pages/Confidentialite';
+import RGPD from './pages/RGPD';
+
 function App() {
   return (
     <HelmetProvider>
@@ -192,6 +197,38 @@ function App() {
                         url="https://leonceouattarastudiogroup.site/reserver"
                       />
                       <BookingPage />
+                    </>
+                  } 
+                />
+
+		
+		{/* 🆕 Pages Légales */}
+                <Route 
+                  path="/confidentialite" 
+                  element={
+                    <>
+                      <SEO 
+                        title="Politique de Confidentialité - Leonce Ouattara Studio"
+                        description="Découvrez comment Leonce Ouattara Studio collecte, utilise et protège vos données personnelles. Transparence totale sur notre politique de confidentialité."
+                        keywords="politique de confidentialité, protection données, RGPD, vie privée, sécurité données"
+                        url="https://leonceouattarastudiogroup.site/confidentialite"
+                      />
+                      <Confidentialite />
+                    </>
+                  } 
+                />
+
+                <Route 
+                  path="/rgpd" 
+                  element={
+                    <>
+                      <SEO 
+                        title="Conformité RGPD - Leonce Ouattara Studio"
+                        description="Notre engagement RGPD : protection de vos données personnelles, droits garantis, mesures de sécurité. Conformité totale au règlement européen."
+                        keywords="RGPD, conformité RGPD, droits RGPD, protection données personnelles, sécurité informatique"
+                        url="https://leonceouattarastudiogroup.site/rgpd"
+                      />
+                      <RGPD />
                     </>
                   } 
                 />
