@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Send,
   Mail,
@@ -10,23 +10,84 @@ import {
   Shield,
   ExternalLink,
   Loader,
+  ArrowRight,
+  ArrowLeft,
+  Building2,
+  Target,
+  DollarSign,
+  Sparkles,
+  Check,
+  Users,
+  Globe,
+  Code,
+  TrendingUp,
+  Clock,
+  FileText,
+  Rocket,
 } from 'lucide-react';
 import { ContactForm } from '../types';
 import ChatBot from './ChatBot';
-// ✨ Import de la fonction de soumission depuis useSupabaseData
 import { submitContactForm, type ContactFormData } from '../lib/useSupabaseData';
 
-// Extension de l'interface pour inclure le consentement RGPD
 interface ExtendedContactForm extends ContactForm {
   rgpdConsent: boolean;
+  phone?: string;
+  sector?: string;
+  employeeCount?: string;
+  projectType?: string;
+  timeline?: string;
+  features?: string[];
+  urgency?: string;
 }
 
+// Types de projets - ALIGNÉS SUR LES SERVICES (prix et durées discutés lors du contact)
+const PROJECT_TYPES = [
+  { id: 'portail-web', label: 'Développement de Portails Web', icon: Globe },
+  { id: 'solutions-metiers', label: 'Solutions Métiers Financières', icon: Code },
+  { id: 'digitalisation-bpm', label: 'Digitalisation & Workflows (BPM)', icon: TrendingUp },
+  { id: 'systemes-paiement', label: 'Systèmes de Paiement', icon: DollarSign },
+  { id: 'systemes-information', label: 'Optimisation Systèmes Info (SI)', icon: Building2 },
+  { id: 'data-analytics', label: 'Tableaux de bord / KPI & Analytics', icon: TrendingUp },
+];
+
+// Fonctionnalités optionnelles (prix discutés lors du contact)
+const FEATURES = [
+  { id: 'auth', label: 'Authentification Avancée' },
+  { id: 'payment', label: 'Paiement en Ligne' },
+  { id: 'analytics', label: 'Analytics & Reporting' },
+  { id: 'api', label: 'Intégrations API' },
+  { id: 'mobile-app', label: 'Version Mobile' },
+  { id: 'admin', label: 'Dashboard Admin' },
+  { id: 'seo', label: 'Optimisation SEO' },
+  { id: 'multilang', label: 'Multilingue' },
+];
+
+// Secteurs
+const SECTORS = [
+  'Microfinance',
+  'Banque',
+  'Assurance',
+  'Fintech',
+  'E-commerce',
+  'Santé',
+  'Éducation',
+  'Autre',
+];
+
 const Contact: React.FC = () => {
+  const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<ExtendedContactForm>({
     name: '',
     email: '',
+    phone: '',
     company: '',
+    sector: '',
+    employeeCount: '',
+    projectType: '',
+    timeline: '',
+    features: [],
     budget: '',
+    urgency: '',
     project: '',
     rgpdConsent: false,
   });
@@ -34,646 +95,667 @@ const Contact: React.FC = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errors, setErrors] = useState<Partial<ExtendedContactForm>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // ✨ État pour les erreurs de soumission Supabase
   const [submitError, setSubmitError] = useState<string | null>(null);
-
-  // ✨ État pour contrôler l'ouverture du ChatBot
   const [isChatBotOpen, setIsChatBotOpen] = useState(false);
 
-  const budgetRanges = [
-    'Moins de 5K€',
-    '5K€ - 15K€',
-    '15K€ - 30K€',
-    '30K€ - 50K€',
-    'Plus de 50K€',
-  ];
+  const handleInputChange = (field: string, value: any) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    if (errors[field as keyof ExtendedContactForm]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+  };
 
-  const validateForm = (): boolean => {
+  const toggleFeature = (featureId: string) => {
+    const current = formData.features || [];
+    if (current.includes(featureId)) {
+      handleInputChange(
+        'features',
+        current.filter((f) => f !== featureId)
+      );
+    } else {
+      handleInputChange('features', [...current, featureId]);
+    }
+  };
+
+  const validateStep = (step: number): boolean => {
     const newErrors: Partial<ExtendedContactForm> = {};
 
-    // Validation du nom
-    if (!formData.name.trim()) {
-      newErrors.name = 'Le nom est requis';
-    } else if (formData.name.trim().length < 2) {
-      newErrors.name = 'Le nom doit contenir au moins 2 caractères';
+    if (step === 1) {
+      if (!formData.name.trim() || formData.name.length < 2) {
+        newErrors.name = 'Nom requis (min. 2 caractères)';
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+        newErrors.email = 'Email invalide';
+      }
+      if (!formData.company.trim()) {
+        newErrors.company = 'Entreprise requise';
+      }
+      if (!formData.sector) {
+        newErrors.sector = 'Secteur requis';
+      }
     }
 
-    // Validation de l'email
-    if (!formData.email.trim()) {
-      newErrors.email = "L'email est requis";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Format d'email invalide";
+    if (step === 2) {
+      if (!formData.projectType) {
+        newErrors.projectType = 'Type de projet requis';
+      }
+      if (!formData.timeline) {
+        newErrors.timeline = 'Timeline requis';
+      }
     }
 
-    // Validation de l'entreprise
-    if (!formData.company.trim()) {
-      newErrors.company = "Le nom de l'entreprise est requis";
+    if (step === 3) {
+      if (!formData.project.trim() || formData.project.length < 20) {
+        newErrors.project = 'Description requise (min. 20 caractères)';
+      }
+      if (!formData.urgency) {
+        newErrors.urgency = 'Urgence requise';
+      }
     }
 
-    // Validation du budget
-    if (!formData.budget) {
-      newErrors.budget = 'Veuillez sélectionner une tranche de budget';
-    }
-
-    // Validation de la description du projet
-    if (!formData.project.trim()) {
-      newErrors.project = 'La description du projet est requise';
-    } else if (formData.project.trim().length < 20) {
-      newErrors.project =
-        'Veuillez fournir une description plus détaillée (minimum 20 caractères)';
-    }
-
-    // ✅ Validation du consentement RGPD (CRITIQUE)
-    if (!formData.rgpdConsent) {
-      newErrors.rgpdConsent =
-        'Vous devez accepter la politique de confidentialité pour continuer';
+    if (step === 4) {
+      if (!formData.rgpdConsent) {
+        newErrors.rgpdConsent = 'Consentement RGPD requis';
+      }
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // ✨ Fonction pour obtenir l'adresse IP (optionnel)
-  const getClientIP = async (): Promise<string | undefined> => {
-    try {
-      const response = await fetch('https://api.ipify.org?format=json');
-      const data = await response.json();
-      return data.ip;
-    } catch (error) {
-      console.warn('Impossible de récupérer l\'IP:', error);
-      return undefined;
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (validateForm()) {
-      setIsSubmitting(true);
-      setSubmitError(null);
-
-      try {
-        // ✨ Récupérer les informations techniques (optionnel)
-        let ipAddress: string | undefined;
-        try {
-          const response = await fetch('https://api.ipify.org?format=json');
-          const data = await response.json();
-          ipAddress = data.ip;
-        } catch (ipError) {
-          console.warn('Impossible de récupérer l\'IP (ignoré):', ipError);
-          ipAddress = undefined;
-        }
-        
-        const userAgent = navigator.userAgent;
-
-        // ✨ Préparer les données pour Supabase
-        const contactData: ContactFormData = {
-          name: formData.name.trim(),
-          email: formData.email.trim().toLowerCase(),
-          company: formData.company.trim(),
-          budget: formData.budget,
-          project: formData.project.trim(),
-          rgpd_consent: formData.rgpdConsent,
-          ip_address: ipAddress,
-          user_agent: userAgent,
-        };
-
-        console.log('📤 Envoi des données:', contactData);
-
-        // ✨ Soumettre à Supabase
-        const result = await submitContactForm(contactData);
-
-        console.log('✅ Formulaire soumis avec succès:', result);
-
-        // ✨ Envoyer emails via Brevo (même système que rendez-vous)
-        try {
-          const { sendContactEmails } = await import('../services/emailService');
-          
-          const emailData = {
-            name: formData.name,
-            email: formData.email,
-            company: formData.company,
-            budget: formData.budget,
-            project: formData.project,
-          };
-          
-          const { clientSent, adminSent } = await sendContactEmails(emailData);
-          
-          console.log('📧 Emails envoyés:', { clientSent, adminSent });
-          
-          if (!clientSent || !adminSent) {
-            console.warn('⚠️ Certains emails n\'ont pas pu être envoyés');
-          }
-        } catch (emailError) {
-          console.error('⚠️ Erreur envoi emails:', emailError);
-          // Ne pas bloquer si emails échouent
-        }
-
-        // ✨ Afficher le message de succès
-        setIsSubmitted(true);
-
-        // ✨ Réinitialisation après 5 secondes
-        setTimeout(() => {
-          setIsSubmitted(false);
-          setFormData({
-            name: '',
-            email: '',
-            company: '',
-            budget: '',
-            project: '',
-            rgpdConsent: false,
-          });
-        }, 5000);
-      } catch (error: any) {
-        console.error("❌ Erreur complète lors de l'envoi:", error);
-        console.error("❌ Message d'erreur:", error?.message);
-        console.error("❌ Détails:", error?.details);
-        console.error("❌ Code:", error?.code);
-        console.error("❌ Hint:", error?.hint);
-        
-        // ✨ Afficher un message d'erreur convivial basé sur le type d'erreur
-        if (error?.message?.includes('fetch failed') || error?.message?.includes('NetworkError')) {
-          setSubmitError(
-            '🌐 Erreur de connexion. Vérifiez votre connexion internet ou réessayez dans quelques instants. Si le problème persiste, contactez-nous directement par email ou WhatsApp.'
-          );
-        } else if (error?.message?.includes('duplicate key') || error?.code === '23505') {
-          setSubmitError(
-            '📧 Un formulaire avec cet email a déjà été soumis. Veuillez utiliser un autre email ou nous contacter directement.'
-          );
-        } else if (error?.message?.includes('violates check constraint') || error?.code === '23514') {
-          setSubmitError(
-            '⚠️ Les données du formulaire ne respectent pas les critères requis. Veuillez vérifier que le consentement RGPD est accepté.'
-          );
-        } else if (error?.message?.includes('permission denied') || error?.code === '42501') {
-          setSubmitError(
-            '🔒 Erreur de permissions. La table contact n\'a peut-être pas été créée ou les politiques RLS ne sont pas configurées correctement. Contactez-nous directement par email.'
-          );
-        } else if (error?.message?.includes('relation') && error?.message?.includes('does not exist')) {
-          setSubmitError(
-            '🗄️ La table de contact n\'existe pas encore dans la base de données. Veuillez contacter l\'administrateur ou nous joindre directement par email.'
-          );
-        } else {
-          setSubmitError(
-            `❌ Une erreur est survenue lors de l'envoi du formulaire. ${error?.message || 'Erreur inconnue'}. Veuillez réessayer ou nous contacter directement par email ou WhatsApp.`
-          );
-        }
-      } finally {
-        setIsSubmitting(false);
+  const nextStep = () => {
+    if (validateStep(currentStep)) {
+      setCurrentStep((prev) => Math.min(prev + 1, 4));
+      // Scroll vers la section contact (pas en haut de page)
+      const contactSection = document.getElementById('contact');
+      if (contactSection) {
+        const offset = 100; // Offset pour navbar sticky
+        const elementPosition = contactSection.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - offset;
+        window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
       }
     }
   };
 
-  const handleInputChange = (
-    field: keyof ExtendedContactForm,
-    value: string | boolean
-  ) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-
-    // Effacer l'erreur dès que l'utilisateur commence à corriger
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
-    }
-
-    // Effacer l'erreur de soumission si l'utilisateur modifie le formulaire
-    if (submitError) {
-      setSubmitError(null);
+  const prevStep = () => {
+    setCurrentStep((prev) => Math.max(prev - 1, 1));
+    // Scroll vers la section contact (pas en haut de page)
+    const contactSection = document.getElementById('contact');
+    if (contactSection) {
+      const offset = 100;
+      const elementPosition = contactSection.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+      window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
     }
   };
 
-  // ✨ Fonction pour ouvrir WhatsApp avec message pré-rempli
-  const handleOpenWhatsApp = () => {
-    // Numéro WhatsApp au format international (sans espaces ni caractères spéciaux)
-    const phoneNumber = '2250545130739';
+  const handleSubmit = async () => {
+    if (!validateStep(4)) return;
 
-    // Message pré-rempli (optionnel)
-    const message = encodeURIComponent(
-      "Bonjour Léonce, je souhaite discuter d'un projet avec vous."
-    );
+    setIsSubmitting(true);
+    setSubmitError(null);
 
-    // URL WhatsApp (compatible mobile et desktop)
-    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
+    try {
+      let ipAddress: string | undefined;
+      try {
+        const response = await fetch('https://api.ipify.org?format=json');
+        const data = await response.json();
+        ipAddress = data.ip;
+      } catch (ipError) {
+        ipAddress = undefined;
+      }
 
-    // Ouvrir dans un nouvel onglet
-    window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+      const userAgent = navigator.userAgent;
+
+      // Budget formaté avec infos sélection
+      const budgetText = `Timeline: ${formData.timeline} | Urgence: ${formData.urgency}`;
+
+      const contactData: ContactFormData = {
+        name: formData.name.trim(),
+        email: formData.email.trim().toLowerCase(),
+        company: formData.company.trim(),
+        budget: budgetText,
+        project: `
+SECTEUR: ${formData.sector}
+TYPE PROJET: ${PROJECT_TYPES.find((p) => p.id === formData.projectType)?.label}
+FONCTIONNALITÉS: ${formData.features?.map((f) => FEATURES.find((feat) => feat.id === f)?.label).join(', ')}
+TIMELINE: ${formData.timeline}
+URGENCE: ${formData.urgency}
+TÉLÉPHONE: ${formData.phone || 'Non fourni'}
+EFFECTIFS: ${formData.employeeCount || 'Non fourni'}
+
+DESCRIPTION:
+${formData.project.trim()}
+        `.trim(),
+        rgpd_consent: formData.rgpdConsent,
+        ip_address: ipAddress,
+        user_agent: userAgent,
+      };
+
+      await submitContactForm(contactData);
+
+      // ✨ Envoyer emails via Brevo (même système que rendez-vous)
+      try {
+        const { sendContactEmails } = await import('../services/emailService');
+        
+        const emailData = {
+          name: formData.name,
+          email: formData.email,
+          company: formData.company,
+          budget: budgetText,
+          project: contactData.project,
+        };
+        
+        const { clientSent, adminSent } = await sendContactEmails(emailData);
+        
+        console.log('📧 Emails envoyés:', { clientSent, adminSent });
+        
+        if (!clientSent || !adminSent) {
+          console.warn('⚠️ Certains emails n\'ont pas pu être envoyés');
+        }
+      } catch (emailError) {
+        console.error('⚠️ Erreur envoi emails:', emailError);
+        // Ne pas bloquer si emails échouent
+      }
+
+      setIsSubmitted(true);
+
+      setTimeout(() => {
+        setIsSubmitted(false);
+        setCurrentStep(1);
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          company: '',
+          sector: '',
+          employeeCount: '',
+          projectType: '',
+          timeline: '',
+          features: [],
+          budget: '',
+          urgency: '',
+          project: '',
+          rgpdConsent: false,
+        });
+      }, 8000);
+    } catch (error: any) {
+      console.error('Submit error:', error);
+      setSubmitError(
+        'Une erreur est survenue. Veuillez réessayer ou nous contacter directement.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleCloseChatBot = () => {
-    console.log('✖ Fermeture du ChatBot');
     setIsChatBotOpen(false);
   };
 
+  const progress = (currentStep / 4) * 100;
+
   return (
-    <section id="contact" className="py-20 relative">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
+    <section id="contact" className="relative overflow-hidden bg-black">
+      {/* Gradient de transition HAUT */}
+      <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black via-black/80 to-transparent pointer-events-none z-10"></div>
+
+      {/* Background radial gradient */}
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/10 via-black to-black"></div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 relative z-20">
+        {/* Header */}
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6">
-            Contactez-
-            <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
-              moi
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500/10 border border-purple-500/30 rounded-full mb-6">
+            <Sparkles size={16} className="text-purple-400" />
+            <span className="text-purple-400 text-sm font-medium">
+              Estimation gratuite en 2 minutes
+            </span>
+          </div>
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
+            <span className="text-white">Démarrons Votre </span>
+            <span className="bg-gradient-to-r from-purple-400 via-pink-500 to-cyan-400 bg-clip-text text-transparent">
+              Projet Digital
             </span>
           </h2>
           <p className="text-xl text-gray-400 max-w-3xl mx-auto">
-            Prêt à transformer votre vision en réalité digitale ? Discutons de
-            votre projet
+            Réponse sous 24h • Consultation gratuite • Devis personnalisé
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-12">
-          {/* Contact Info */}
-          <div className="lg:col-span-1 space-y-8">
-            {/* Contact Cards */}
-            <div className="space-y-6">
-              {/* Email Card */}
-              <div className="bg-white/5 backdrop-blur-sm border border-cyan-500/20 rounded-2xl p-6 hover:border-cyan-500/40 transition-all duration-300 group">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-purple-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <Mail size={24} className="text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-white font-semibold mb-1">Email</h3>
-                    <a
-                      href="mailto:contact@leonce-ouattara.com"
-                      className="text-gray-400 hover:text-cyan-400 transition-colors duration-300"
+        {!isSubmitted ? (
+          <div className="max-w-4xl mx-auto">
+            {/* Progress Bar */}
+            <div className="mb-12">
+              <div className="flex items-center justify-between mb-4">
+                {[1, 2, 3, 4].map((step) => (
+                  <div key={step} className="flex items-center flex-1">
+                    <div
+                      className={`w-12 h-12 rounded-full flex items-center justify-center font-bold transition-all duration-500 ${
+                        currentStep >= step
+                          ? 'bg-gradient-to-r from-purple-500 to-cyan-500 text-white scale-110 shadow-lg shadow-purple-500/50'
+                          : 'bg-gray-800 text-gray-500'
+                      }`}
                     >
-                      contact@leonce-ouattara.com
-                    </a>
-                  </div>
-                </div>
-              </div>
-
-              {/* Phone Card */}
-              <div className="bg-white/5 backdrop-blur-sm border border-purple-500/20 rounded-2xl p-6 hover:border-purple-500/40 transition-all duration-300 group">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <Phone size={24} className="text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-white font-semibold mb-1">Téléphone</h3>
-                    <a
-                      href="tel:+225054513739"
-                      className="text-gray-400 hover:text-purple-400 transition-colors duration-300"
-                    >
-                      +225 05 45 13 07 39
-                    </a>
-                  </div>
-                </div>
-              </div>
-
-              {/* Location Card */}
-              <div className="bg-white/5 backdrop-blur-sm border border-cyan-500/20 rounded-2xl p-6 hover:border-cyan-500/40 transition-all duration-300 group">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-purple-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <MapPin size={24} className="text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-white font-semibold mb-1">
-                      Localisation
-                    </h3>
-                    <p className="text-gray-400">Abidjan, Côte d'Ivoire</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Actions */}
-            <div className="space-y-4">
-              <a
-                href="/reserver"
-                className="w-full bg-gradient-to-r from-cyan-500 to-purple-500 text-white px-6 py-4 rounded-xl hover:shadow-xl hover:shadow-cyan-500/25 transition-all duration-300 font-semibold hover:scale-105 flex items-center justify-center gap-3 relative overflow-hidden group"
-                aria-label="Planifier un rendez-vous"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <span className="relative z-10 flex items-center gap-3">
-                  <Calendar size={20} />
-                  Planifier un RDV
-                </span>
-              </a>
-
-              {/* ✨ Bouton Chat en direct - Redirection WhatsApp */}
-              <button
-                onClick={handleOpenWhatsApp}
-                className="w-full border-2 border-cyan-400 text-cyan-400 px-6 py-4 rounded-xl hover:bg-cyan-400 hover:text-black transition-all duration-300 font-semibold hover:scale-105 flex items-center justify-center gap-3 relative overflow-hidden group"
-                aria-label="Démarrer un chat WhatsApp"
-              >
-                <MessageCircle size={20} />
-                <span>Chat en direct</span>
-                {/* Badge WhatsApp */}
-                <span className="absolute -top-1 -right-1 bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
-                  WhatsApp
-                </span>
-              </button>
-            </div>
-
-            {/* RGPD Badge */}
-            <div className="bg-gradient-to-r from-green-500/10 to-cyan-500/10 border border-green-500/30 rounded-xl p-4">
-              <div className="flex items-center gap-3">
-                <Shield size={24} className="text-green-400 flex-shrink-0" />
-                <div>
-                  <p className="text-green-400 font-semibold text-sm">
-                    Données sécurisées
-                  </p>
-                  <p className="text-gray-400 text-xs">
-                    Conforme RGPD • Chiffrement SSL
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Contact Form */}
-          <div className="lg:col-span-2">
-            <div className="bg-white/5 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8">
-              {!isSubmitted ? (
-                <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-                  {/* ✨ Message d'erreur de soumission */}
-                  {submitError && (
-                    <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 flex items-start gap-3">
-                      <div className="text-red-400 mt-0.5">⚠️</div>
-                      <div>
-                        <p className="text-red-400 font-semibold mb-1">
-                          Erreur de soumission
-                        </p>
-                        <p className="text-red-300 text-sm">{submitError}</p>
+                      {currentStep > step ? (
+                        <Check size={24} />
+                      ) : (
+                        <span>{step}</span>
+                      )}
+                    </div>
+                    {step < 4 && (
+                      <div className="flex-1 h-1 mx-2 bg-gray-800 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-purple-500 to-cyan-500 transition-all duration-500"
+                          style={{
+                            width: currentStep > step ? '100%' : '0%',
+                          }}
+                        />
                       </div>
-                    </div>
-                  )}
-
-                  {/* Name and Email */}
-                  <div className="grid md:grid-cols-2 gap-6">
-                    {/* Name Field */}
-                    <div>
-                      <label
-                        htmlFor="name"
-                        className="block text-white font-medium mb-2"
-                      >
-                        Nom complet <span className="text-red-400">*</span>
-                      </label>
-                      <input
-                        id="name"
-                        type="text"
-                        value={formData.name}
-                        onChange={(e) =>
-                          handleInputChange('name', e.target.value)
-                        }
-                        className={`w-full bg-white/5 border ${
-                          errors.name
-                            ? 'border-red-500 focus:border-red-500'
-                            : 'border-gray-700/50 focus:border-cyan-500/50'
-                        } rounded-xl py-3 px-4 text-white placeholder-gray-400 focus:outline-none focus:bg-white/10 transition-all duration-300`}
-                        placeholder="Jean Dupont"
-                        aria-required="true"
-                        aria-invalid={!!errors.name}
-                        aria-describedby={
-                          errors.name ? 'name-error' : undefined
-                        }
-                        disabled={isSubmitting}
-                      />
-                      {errors.name && (
-                        <p
-                          id="name-error"
-                          className="text-red-400 text-sm mt-1 flex items-center gap-1"
-                        >
-                          <span className="inline-block w-1 h-1 bg-red-400 rounded-full"></span>
-                          {errors.name}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Email Field */}
-                    <div>
-                      <label
-                        htmlFor="email"
-                        className="block text-white font-medium mb-2"
-                      >
-                        Email professionnel{' '}
-                        <span className="text-red-400">*</span>
-                      </label>
-                      <input
-                        id="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) =>
-                          handleInputChange('email', e.target.value)
-                        }
-                        className={`w-full bg-white/5 border ${
-                          errors.email
-                            ? 'border-red-500 focus:border-red-500'
-                            : 'border-gray-700/50 focus:border-cyan-500/50'
-                        } rounded-xl py-3 px-4 text-white placeholder-gray-400 focus:outline-none focus:bg-white/10 transition-all duration-300`}
-                        placeholder="vous@entreprise.com"
-                        aria-required="true"
-                        aria-invalid={!!errors.email}
-                        aria-describedby={
-                          errors.email ? 'email-error' : undefined
-                        }
-                        disabled={isSubmitting}
-                      />
-                      {errors.email && (
-                        <p
-                          id="email-error"
-                          className="text-red-400 text-sm mt-1 flex items-center gap-1"
-                        >
-                          <span className="inline-block w-1 h-1 bg-red-400 rounded-full"></span>
-                          {errors.email}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Company and Budget */}
-                  <div className="grid md:grid-cols-2 gap-6">
-                    {/* Company Field */}
-                    <div>
-                      <label
-                        htmlFor="company"
-                        className="block text-white font-medium mb-2"
-                      >
-                        Entreprise <span className="text-red-400">*</span>
-                      </label>
-                      <input
-                        id="company"
-                        type="text"
-                        value={formData.company}
-                        onChange={(e) =>
-                          handleInputChange('company', e.target.value)
-                        }
-                        className={`w-full bg-white/5 border ${
-                          errors.company
-                            ? 'border-red-500 focus:border-red-500'
-                            : 'border-gray-700/50 focus:border-cyan-500/50'
-                        } rounded-xl py-3 px-4 text-white placeholder-gray-400 focus:outline-none focus:bg-white/10 transition-all duration-300`}
-                        placeholder="ACME Corporation"
-                        aria-required="true"
-                        aria-invalid={!!errors.company}
-                        aria-describedby={
-                          errors.company ? 'company-error' : undefined
-                        }
-                        disabled={isSubmitting}
-                      />
-                      {errors.company && (
-                        <p
-                          id="company-error"
-                          className="text-red-400 text-sm mt-1 flex items-center gap-1"
-                        >
-                          <span className="inline-block w-1 h-1 bg-red-400 rounded-full"></span>
-                          {errors.company}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Budget Field */}
-                    <div>
-                      <label
-                        htmlFor="budget"
-                        className="block text-white font-medium mb-2"
-                      >
-                        Budget estimé <span className="text-red-400">*</span>
-                      </label>
-                      <select
-                        id="budget"
-                        value={formData.budget}
-                        onChange={(e) =>
-                          handleInputChange('budget', e.target.value)
-                        }
-                        className={`w-full bg-white/5 border ${
-                          errors.budget
-                            ? 'border-red-500 focus:border-red-500'
-                            : 'border-gray-700/50 focus:border-cyan-500/50'
-                        } rounded-xl py-3 px-4 text-white focus:outline-none focus:bg-white/10 transition-all duration-300 cursor-pointer`}
-                        aria-required="true"
-                        aria-invalid={!!errors.budget}
-                        aria-describedby={
-                          errors.budget ? 'budget-error' : undefined
-                        }
-                        disabled={isSubmitting}
-                      >
-                        <option value="" className="bg-gray-800">
-                          Sélectionnez votre budget
-                        </option>
-                        {budgetRanges.map((range) => (
-                          <option
-                            key={range}
-                            value={range}
-                            className="bg-gray-800"
-                          >
-                            {range}
-                          </option>
-                        ))}
-                      </select>
-                      {errors.budget && (
-                        <p
-                          id="budget-error"
-                          className="text-red-400 text-sm mt-1 flex items-center gap-1"
-                        >
-                          <span className="inline-block w-1 h-1 bg-red-400 rounded-full"></span>
-                          {errors.budget}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Project Description */}
-                  <div>
-                    <label
-                      htmlFor="project"
-                      className="block text-white font-medium mb-2"
-                    >
-                      Description du projet{' '}
-                      <span className="text-red-400">*</span>
-                    </label>
-                    <textarea
-                      id="project"
-                      value={formData.project}
-                      onChange={(e) =>
-                        handleInputChange('project', e.target.value)
-                      }
-                      rows={6}
-                      className={`w-full bg-white/5 border ${
-                        errors.project
-                          ? 'border-red-500 focus:border-red-500'
-                          : 'border-gray-700/50 focus:border-cyan-500/50'
-                      } rounded-xl py-3 px-4 text-white placeholder-gray-400 focus:outline-none focus:bg-white/10 transition-all duration-300 resize-none`}
-                      placeholder="Décrivez votre projet : objectifs, besoins techniques, cible, délais souhaités, défis spécifiques..."
-                      aria-required="true"
-                      aria-invalid={!!errors.project}
-                      aria-describedby={
-                        errors.project ? 'project-error' : undefined
-                      }
-                      disabled={isSubmitting}
-                    />
-                    {errors.project && (
-                      <p
-                        id="project-error"
-                        className="text-red-400 text-sm mt-1 flex items-center gap-1"
-                      >
-                        <span className="inline-block w-1 h-1 bg-red-400 rounded-full"></span>
-                        {errors.project}
-                      </p>
                     )}
-                    <p className="text-gray-500 text-xs mt-1">
-                      Minimum 20 caractères • {formData.project.length}/500
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-between text-sm text-gray-400">
+                <span>Profil</span>
+                <span>Projet</span>
+                <span>Budget</span>
+                <span>Confirmation</span>
+              </div>
+            </div>
+
+            {/* Form Steps */}
+            <div className="bg-transparent backdrop-blur-xl border border-gray-800/50 rounded-3xl p-8 md:p-12">
+              {/* ÉTAPE 1: Profil */}
+              {currentStep === 1 && (
+                <div className="space-y-6 animate-fade-in">
+                  <div className="text-center mb-8">
+                    <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <Users size={32} className="text-white" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-white mb-2">
+                      Parlez-nous de vous
+                    </h3>
+                    <p className="text-gray-400">
+                      Informations de contact et entreprise
                     </p>
                   </div>
 
-                  {/* ✅ RGPD Consent Checkbox - SECTION CRITIQUE */}
-                  <div className="bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border border-cyan-500/30 rounded-xl p-6">
-                    <div className="flex items-start gap-4">
-                      <div className="pt-0.5">
-                        <input
-                          id="rgpdConsent"
-                          type="checkbox"
-                          checked={formData.rgpdConsent}
-                          onChange={(e) =>
-                            handleInputChange('rgpdConsent', e.target.checked)
-                          }
-                          className={`w-5 h-5 rounded border-2 ${
-                            errors.rgpdConsent
-                              ? 'border-red-500'
-                              : 'border-cyan-500/50'
-                          } bg-white/5 text-cyan-500 focus:ring-2 focus:ring-cyan-500/50 focus:ring-offset-0 cursor-pointer transition-all duration-300`}
-                          aria-required="true"
-                          aria-invalid={!!errors.rgpdConsent}
-                          aria-describedby={
-                            errors.rgpdConsent
-                              ? 'rgpd-error'
-                              : 'rgpd-description'
-                          }
-                          disabled={isSubmitting}
-                        />
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-white font-medium mb-2">
+                        Nom complet <span className="text-red-400">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.name}
+                        onChange={(e) => handleInputChange('name', e.target.value)}
+                        className="w-full px-4 py-3 bg-white/5 border border-gray-700 rounded-xl text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all"
+                        placeholder="Jean Dupont"
+                      />
+                      {errors.name && (
+                        <p className="text-red-400 text-sm mt-1">{errors.name}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-white font-medium mb-2">
+                        Email professionnel <span className="text-red-400">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => handleInputChange('email', e.target.value)}
+                        className="w-full px-4 py-3 bg-white/5 border border-gray-700 rounded-xl text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all"
+                        placeholder="jean@entreprise.ci"
+                      />
+                      {errors.email && (
+                        <p className="text-red-400 text-sm mt-1">{errors.email}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-white font-medium mb-2">
+                        Téléphone
+                      </label>
+                      <input
+                        type="tel"
+                        value={formData.phone}
+                        onChange={(e) => handleInputChange('phone', e.target.value)}
+                        className="w-full px-4 py-3 bg-white/5 border border-gray-700 rounded-xl text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all"
+                        placeholder="+225 XX XX XX XX XX"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-white font-medium mb-2">
+                        Entreprise <span className="text-red-400">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.company}
+                        onChange={(e) => handleInputChange('company', e.target.value)}
+                        className="w-full px-4 py-3 bg-white/5 border border-gray-700 rounded-xl text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all"
+                        placeholder="Nom de l'entreprise"
+                      />
+                      {errors.company && (
+                        <p className="text-red-400 text-sm mt-1">{errors.company}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-white font-medium mb-2">
+                        Secteur d'activité <span className="text-red-400">*</span>
+                      </label>
+                      <select
+                        value={formData.sector}
+                        onChange={(e) => handleInputChange('sector', e.target.value)}
+                        className="w-full px-4 py-3 bg-black border border-gray-700 rounded-xl text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all [&>option]:bg-black [&>option]:text-white"
+                      >
+                        <option value="" className="bg-black text-white">Sélectionner</option>
+                        {SECTORS.map((sector) => (
+                          <option key={sector} value={sector} className="bg-black text-white">
+                            {sector}
+                          </option>
+                        ))}
+                      </select>
+                      {errors.sector && (
+                        <p className="text-red-400 text-sm mt-1">{errors.sector}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-white font-medium mb-2">
+                        Nombre d'employés
+                      </label>
+                      <select
+                        value={formData.employeeCount}
+                        onChange={(e) =>
+                          handleInputChange('employeeCount', e.target.value)
+                        }
+                        className="w-full px-4 py-3 bg-black border border-gray-700 rounded-xl text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all [&>option]:bg-black [&>option]:text-white"
+                      >
+                        <option value="" className="bg-black text-white">Sélectionner</option>
+                        <option value="1-10" className="bg-black text-white">1-10</option>
+                        <option value="11-50" className="bg-black text-white">11-50</option>
+                        <option value="51-200" className="bg-black text-white">51-200</option>
+                        <option value="200+" className="bg-black text-white">200+</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ÉTAPE 2: Type de Projet */}
+              {currentStep === 2 && (
+                <div className="space-y-6 animate-fade-in">
+                  <div className="text-center mb-8">
+                    <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <Rocket size={32} className="text-white" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-white mb-2">
+                      Type de projet
+                    </h3>
+                    <p className="text-gray-400">
+                      Choisissez le type de solution dont vous avez besoin
+                    </p>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {PROJECT_TYPES.map((type) => {
+                      const Icon = type.icon;
+                      const isSelected = formData.projectType === type.id;
+                      return (
+                        <button
+                          key={type.id}
+                          onClick={() => handleInputChange('projectType', type.id)}
+                          className={`p-6 rounded-2xl border-2 transition-all duration-300 text-left ${
+                            isSelected
+                              ? 'border-purple-500 bg-purple-500/20 scale-105 shadow-xl shadow-purple-500/20'
+                              : 'border-gray-700 bg-white/5 hover:border-gray-600 hover:bg-white/10'
+                          }`}
+                        >
+                          <Icon
+                            size={32}
+                            className={`mb-3 ${
+                              isSelected ? 'text-purple-400' : 'text-gray-400'
+                            }`}
+                          />
+                          <h4
+                            className={`font-bold text-sm ${
+                              isSelected ? 'text-white' : 'text-gray-300'
+                            }`}
+                          >
+                            {type.label}
+                          </h4>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {errors.projectType && (
+                    <p className="text-red-400 text-sm">{errors.projectType}</p>
+                  )}
+
+                  <div className="mt-8">
+                    <label className="block text-white font-medium mb-3">
+                      Fonctionnalités souhaitées (optionnel)
+                    </label>
+                    <div className="grid md:grid-cols-2 gap-3">
+                      {FEATURES.map((feature) => (
+                        <button
+                          key={feature.id}
+                          onClick={() => toggleFeature(feature.id)}
+                          className={`p-4 rounded-xl border text-left transition-all duration-300 ${
+                            formData.features?.includes(feature.id)
+                              ? 'border-cyan-500 bg-cyan-500/20'
+                              : 'border-gray-700 bg-white/5 hover:border-gray-600'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-white font-medium">
+                              {feature.label}
+                            </span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-6 mt-6">
+                    <div>
+                      <label className="block text-white font-medium mb-2">
+                        Timeline souhaitée <span className="text-red-400">*</span>
+                      </label>
+                      <select
+                        value={formData.timeline}
+                        onChange={(e) => handleInputChange('timeline', e.target.value)}
+                        className="w-full px-4 py-3 bg-black border border-gray-700 rounded-xl text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all [&>option]:bg-black [&>option]:text-white"
+                      >
+                        <option value="" className="bg-black text-white">Sélectionner</option>
+                        <option value="1-month" className="bg-black text-white">Moins d'1 mois</option>
+                        <option value="1-3-months" className="bg-black text-white">1-3 mois</option>
+                        <option value="3-6-months" className="bg-black text-white">3-6 mois</option>
+                        <option value="6-months+" className="bg-black text-white">Plus de 6 mois</option>
+                      </select>
+                      {errors.timeline && (
+                        <p className="text-red-400 text-sm mt-1">{errors.timeline}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ÉTAPE 3: Budget & Description */}
+              {currentStep === 3 && (
+                <div className="space-y-6 animate-fade-in">
+                  <div className="text-center mb-8">
+                    <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <FileText size={32} className="text-white" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-white mb-2">
+                      Détails du projet
+                    </h3>
+                    <p className="text-gray-400">
+                      Décrivez votre projet et vos besoins
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-white font-medium mb-2">
+                      Description du projet <span className="text-red-400">*</span>
+                    </label>
+                    <textarea
+                      value={formData.project}
+                      onChange={(e) => handleInputChange('project', e.target.value)}
+                      rows={6}
+                      className="w-full px-4 py-3 bg-white/5 border border-gray-700 rounded-xl text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all resize-none"
+                      placeholder="Décrivez votre projet, vos objectifs, et vos besoins spécifiques..."
+                    />
+                    <p className="text-gray-500 text-xs mt-1">
+                      Minimum 20 caractères • {formData.project.length}/1000
+                    </p>
+                    {errors.project && (
+                      <p className="text-red-400 text-sm mt-1">{errors.project}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-white font-medium mb-2">
+                      Niveau d'urgence <span className="text-red-400">*</span>
+                    </label>
+                    <div className="grid md:grid-cols-3 gap-4">
+                      {[
+                        { id: 'normal', label: 'Normal', desc: 'Planning flexible' },
+                        {
+                          id: 'important',
+                          label: 'Important',
+                          desc: 'Dans les prochains mois',
+                        },
+                        {
+                          id: 'urgent',
+                          label: 'Urgent',
+                          desc: 'Démarrage immédiat',
+                        },
+                      ].map((urgency) => (
+                        <button
+                          key={urgency.id}
+                          onClick={() => handleInputChange('urgency', urgency.id)}
+                          className={`p-4 rounded-xl border-2 transition-all duration-300 ${
+                            formData.urgency === urgency.id
+                              ? 'border-purple-500 bg-purple-500/20'
+                              : 'border-gray-700 bg-white/5 hover:border-gray-600'
+                          }`}
+                        >
+                          <p
+                            className={`font-bold mb-1 ${
+                              formData.urgency === urgency.id
+                                ? 'text-white'
+                                : 'text-gray-300'
+                            }`}
+                          >
+                            {urgency.label}
+                          </p>
+                          <p className="text-xs text-gray-400">{urgency.desc}</p>
+                        </button>
+                      ))}
+                    </div>
+                    {errors.urgency && (
+                      <p className="text-red-400 text-sm mt-1">{errors.urgency}</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* ÉTAPE 4: Confirmation */}
+              {currentStep === 4 && (
+                <div className="space-y-6 animate-fade-in">
+                  <div className="text-center mb-8">
+                    <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <CheckCircle size={32} className="text-white" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-white mb-2">
+                      Récapitulatif
+                    </h3>
+                    <p className="text-gray-400">Vérifiez vos informations</p>
+                  </div>
+
+                  {/* Récapitulatif */}
+                  <div className="bg-white/5 border border-gray-700 rounded-2xl p-6 space-y-4">
+                    <div>
+                      <p className="text-gray-400 text-sm">Contact</p>
+                      <p className="text-white font-medium">
+                        {formData.name} • {formData.email}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400 text-sm">Entreprise</p>
+                      <p className="text-white font-medium">
+                        {formData.company} • {formData.sector}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400 text-sm">Type de projet</p>
+                      <p className="text-white font-medium">
+                        {PROJECT_TYPES.find((p) => p.id === formData.projectType)
+                          ?.label || 'N/A'}
+                      </p>
+                    </div>
+                    {formData.features && formData.features.length > 0 && (
+                      <div>
+                        <p className="text-gray-400 text-sm">Fonctionnalités</p>
+                        <div className="flex flex-wrap gap-2 mt-1">
+                          {formData.features.map((featureId) => (
+                            <span
+                              key={featureId}
+                              className="px-3 py-1 bg-cyan-500/20 border border-cyan-500/30 rounded-full text-xs text-cyan-400"
+                            >
+                              {FEATURES.find((f) => f.id === featureId)?.label}
+                            </span>
+                          ))}
+                        </div>
                       </div>
+                    )}
+                  </div>
+
+                  {/* RGPD */}
+                  <div className="bg-gradient-to-r from-purple-500/10 to-cyan-500/10 border border-purple-500/30 rounded-xl p-6">
+                    <div className="flex items-start gap-4">
+                      <input
+                        id="rgpdConsent"
+                        type="checkbox"
+                        checked={formData.rgpdConsent}
+                        onChange={(e) =>
+                          handleInputChange('rgpdConsent', e.target.checked)
+                        }
+                        className={`w-5 h-5 rounded mt-0.5 ${
+                          errors.rgpdConsent
+                            ? 'border-red-500'
+                            : 'border-purple-500/50'
+                        } bg-white/5 text-purple-500 focus:ring-2 focus:ring-purple-500/50 cursor-pointer`}
+                        disabled={isSubmitting}
+                      />
                       <div className="flex-1">
                         <label
                           htmlFor="rgpdConsent"
                           className="text-white text-sm leading-relaxed cursor-pointer"
                         >
-                          J'accepte que mes données personnelles soient
-                          collectées et traitées conformément à la{' '}
+                          J'accepte que mes données personnelles soient collectées
+                          conformément à la{' '}
                           <a
                             href="/politique-confidentialite"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-cyan-400 hover:text-cyan-300 underline inline-flex items-center gap-1 transition-colors duration-300"
+                            className="text-purple-400 hover:text-purple-300 underline inline-flex items-center gap-1"
                           >
                             politique de confidentialité
                             <ExternalLink size={12} />
                           </a>{' '}
                           et au RGPD. <span className="text-red-400">*</span>
                         </label>
-                        <p
-                          id="rgpd-description"
-                          className="text-gray-400 text-xs mt-2"
-                        >
-                          Vos données sont stockées de manière sécurisée et ne
-                          seront jamais partagées avec des tiers sans votre
-                          consentement.
-                        </p>
                         {errors.rgpdConsent && (
-                          <p
-                            id="rgpd-error"
-                            className="text-red-400 text-sm mt-2 flex items-center gap-1"
-                          >
-                            <span className="inline-block w-1 h-1 bg-red-400 rounded-full"></span>
+                          <p className="text-red-400 text-sm mt-2">
                             {errors.rgpdConsent}
                           </p>
                         )}
@@ -681,93 +763,122 @@ const Contact: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Submit Button */}
+                  {submitError && (
+                    <div className="bg-red-500/20 border border-red-500/30 rounded-xl p-4">
+                      <p className="text-red-400 text-sm">{submitError}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Navigation Buttons */}
+              <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-800">
+                {currentStep > 1 && (
                   <button
-                    type="submit"
-                    disabled={isSubmitting || !formData.rgpdConsent}
-                    className={`w-full px-8 py-4 rounded-xl transition-all duration-300 font-semibold text-lg flex items-center justify-center gap-3 relative overflow-hidden group ${
-                      isSubmitting || !formData.rgpdConsent
-                        ? 'bg-gray-600 text-gray-400 cursor-not-allowed opacity-60'
-                        : 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white hover:shadow-xl hover:shadow-cyan-500/25 hover:scale-105'
-                    }`}
-                    aria-label="Envoyer le formulaire de contact"
-                    title={
-                      !formData.rgpdConsent
-                        ? 'Veuillez accepter la politique de confidentialité pour continuer'
-                        : ''
-                    }
+                    onClick={prevStep}
+                    disabled={isSubmitting}
+                    className="flex items-center gap-2 px-6 py-3 bg-white/5 border border-gray-700 rounded-xl text-white hover:bg-white/10 transition-all duration-300 disabled:opacity-50"
                   >
-                    {!formData.rgpdConsent ? (
-                      <span className="relative z-10 flex items-center gap-3">
-                        <Shield size={20} />
-                        Acceptez la politique de confidentialité
-                      </span>
-                    ) : isSubmitting ? (
-                      <span className="relative z-10 flex items-center gap-3">
+                    <ArrowLeft size={20} />
+                    Précédent
+                  </button>
+                )}
+
+                {currentStep < 4 ? (
+                  <button
+                    onClick={nextStep}
+                    className="ml-auto flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-500 to-cyan-500 text-white rounded-xl hover:shadow-xl hover:shadow-purple-500/50 transition-all duration-300 font-bold hover:scale-105"
+                  >
+                    Suivant
+                    <ArrowRight size={20} />
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleSubmit}
+                    disabled={isSubmitting || !formData.rgpdConsent}
+                    className={`ml-auto flex items-center gap-2 px-8 py-4 rounded-xl font-bold transition-all duration-300 ${
+                      isSubmitting || !formData.rgpdConsent
+                        ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                        : 'bg-gradient-to-r from-purple-500 to-cyan-500 text-white hover:shadow-xl hover:shadow-purple-500/50 hover:scale-105'
+                    }`}
+                  >
+                    {isSubmitting ? (
+                      <>
                         <Loader size={20} className="animate-spin" />
                         Envoi en cours...
-                      </span>
+                      </>
                     ) : (
                       <>
-                        <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                        <span className="relative z-10 flex items-center gap-3">
-                          <Send size={20} />
-                          Envoyer ma demande
-                        </span>
+                        <Send size={20} />
+                        Envoyer ma demande
                       </>
                     )}
                   </button>
-
-                  {/* Footer Info */}
-                  <p className="text-gray-400 text-sm text-center">
-                    Réponse garantie sous 24h • Consultation gratuite • Devis
-                    personnalisé
-                  </p>
-                </form>
-              ) : (
-                // Success Message
-                <div className="text-center py-12 animate-fade-in">
-                  <div className="w-20 h-20 bg-gradient-to-r from-green-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce-slow">
-                    <CheckCircle size={40} className="text-white" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-white mb-4">
-                    Message envoyé avec succès !
-                  </h3>
-                  <p className="text-gray-400 mb-6 leading-relaxed">
-                    Merci pour votre intérêt. Je reviendrai vers vous sous 24h
-                    pour discuter de votre projet en détail.
-                  </p>
-                  <div className="bg-gradient-to-r from-green-500/20 to-cyan-500/20 border border-green-500/30 rounded-xl p-6 max-w-md mx-auto">
-                    <p className="text-green-400 font-medium mb-2">
-                      📧 Confirmation envoyée
-                    </p>
-                    <p className="text-gray-300 text-sm">
-                      Un email de confirmation a été envoyé à{' '}
-                      <span className="text-cyan-400 font-semibold">
-                        {formData.email}
-                      </span>
-                    </p>
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
+        ) : (
+          // Success Message
+          <div className="max-w-2xl mx-auto text-center py-12 animate-fade-in">
+            <div className="w-24 h-24 bg-gradient-to-r from-green-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-8 animate-bounce-slow">
+              <CheckCircle size={48} className="text-white" />
+            </div>
+            <h3 className="text-3xl font-bold text-white mb-4">
+              Demande envoyée avec succès ! 🎉
+            </h3>
+            <p className="text-gray-400 mb-6 leading-relaxed text-lg">
+              Merci pour votre intérêt. Vous recevrez une réponse détaillée sous
+              24h avec un devis personnalisé.
+            </p>
+            <div className="bg-gradient-to-r from-green-500/20 to-cyan-500/20 border border-green-500/30 rounded-2xl p-8">
+              <p className="text-green-400 font-bold text-xl mb-4">
+                ✅ Demande enregistrée
+              </p>
+              <p className="text-gray-300 mb-2">
+                Email : <span className="text-cyan-400 font-semibold">{formData.email}</span>
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Info Cards */}
+        <div className="grid md:grid-cols-3 gap-6 mt-16 max-w-4xl mx-auto">
+          {[
+            {
+              icon: CheckCircle,
+              title: 'Réponse Rapide',
+              desc: 'Sous 24h ouvrées',
+            },
+            { icon: Shield, title: 'Données Sécurisées', desc: 'RGPD compliant' },
+            { icon: Rocket, title: 'Sans Engagement', desc: 'Devis gratuit' },
+          ].map((item, idx) => {
+            const Icon = item.icon;
+            return (
+              <div
+                key={idx}
+                className="bg-white/5 backdrop-blur-sm border border-gray-800/50 rounded-2xl p-6 text-center hover:bg-white/10 transition-all duration-300"
+              >
+                <Icon size={32} className="text-purple-400 mx-auto mb-3" />
+                <h4 className="text-white font-bold mb-1">{item.title}</h4>
+                <p className="text-gray-400 text-sm">{item.desc}</p>
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      {/* ✨ Composant ChatBot conditionnel avec contrôle */}
       {isChatBotOpen && (
         <div className="chatbot-wrapper">
           <ChatBot defaultOpen={true} onClose={handleCloseChatBot} />
         </div>
       )}
 
-      {/* Styles personnalisés pour les animations */}
       <style>{`
         @keyframes fade-in {
           from {
             opacity: 0;
-            transform: translateY(10px);
+            transform: translateY(20px);
           }
           to {
             opacity: 1;
@@ -780,36 +891,21 @@ const Contact: React.FC = () => {
             transform: translateY(0);
           }
           50% {
-            transform: translateY(-10px);
+            transform: translateY(-20px);
           }
         }
 
         .animate-fade-in {
-          animation: fade-in 0.6s ease-out;
+          animation: fade-in 0.5s ease-out;
         }
 
         .animate-bounce-slow {
           animation: bounce-slow 2s ease-in-out infinite;
         }
 
-        /* Style personnalisé pour la checkbox */
         input[type="checkbox"]:checked {
-          background-color: rgb(6, 182, 212);
+          background-color: rgb(168, 85, 247);
           background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
-        }
-
-        /* Animation du loader */
-        @keyframes spin {
-          from {
-            transform: rotate(0deg);
-          }
-          to {
-            transform: rotate(360deg);
-          }
-        }
-
-        .animate-spin {
-          animation: spin 1s linear infinite;
         }
       `}</style>
     </section>
