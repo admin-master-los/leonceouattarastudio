@@ -11,8 +11,8 @@ const Footer: React.FC = () => {
     }
   };
 
-  return (
-    <footer className="bg-black/50 border-t border-gray-800/50 mt-20">
+  return (   
+    <footer className="bg-gradient-to-b from-black via-black/80 to-transparent border-t border-gray-800/50 mt-0">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid md:grid-cols-4 gap-8 mb-12">
           {/* Brand & Description */}
@@ -22,8 +22,8 @@ const Footer: React.FC = () => {
                 Leonce Ouattara Studio
               </h3>
               <p className="text-gray-400 leading-relaxed max-w-md">
-                Expert IT spécialisé dans le développement de solutions
-                digitales sur mesure. Je transforme vos idées en applications
+                Nous sommes spécialistes dans le développement de solutions
+                digitales sur mesure et la digitalisation de processus. Nous transformons vos idées en solutions
                 performantes et évolutives.
               </p>
             </div>
@@ -32,11 +32,11 @@ const Footer: React.FC = () => {
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-gray-400">
                 <Mail size={16} />
-                <span>contact@leonce-ouattara.com</span>
+                <span>contact@leonceouattarastudiogroup.com</span>
               </div>
               <div className="flex items-center gap-3 text-gray-400">
                 <Phone size={16} />
-                <span>+225 07 XX XX XX XX</span>
+                <span>+225 05 45 13 07 39</span>
               </div>
               <div className="flex items-center gap-3 text-gray-400">
                 <MapPin size={16} />

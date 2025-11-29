@@ -296,13 +296,13 @@ ${formData.project.trim()}
   const progress = (currentStep / 4) * 100;
 
   return (
-    <section id="contact" className="relative overflow-hidden bg-black">
+    <section id="contact" className="relative overflow-hidden bg-gradient-to-b from-transparent via-black/80 to-black">
       {/* Gradient de transition HAUT */}
-      <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black via-black/80 to-transparent pointer-events-none z-10"></div>
+      <div className="absolute top-0 left-0 right-0 h-32 pointer-events-none z-10"></div>
 
       {/* Background radial gradient */}
       <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/10 via-black to-black"></div>
+        <div className="absolute inset-0 from-purple-900/10 via-black to-black"></div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 relative z-20">

@@ -113,7 +113,7 @@ function App() {
                       <BackgroundAnimation />
 
                       {/* Main Content */}
-                      <div className="relative z-10">
+                      <div className="relative bg-gradient-to-b from-black via-black/80 to-transparent z-10">
                         <Header />
                         <main>
                           <Hero />

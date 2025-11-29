@@ -15,7 +15,7 @@ const Hero: React.FC = () => {
       className="min-h-screen flex items-center justify-center relative overflow-hidden"
     >
       {/* Subtle gradient overlay on black */}
-      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-purple-500/5" />
+      <div className="absolute inset-0 from-cyan-500/5 via-transparent to-purple-500/5" />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16 relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
