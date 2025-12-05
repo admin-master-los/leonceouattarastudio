@@ -34,7 +34,7 @@ const About: React.FC = () => {
   const stats = [
     { number: '8+', label: "Années d'expérience" },
     { number: '50+', label: 'Projets réalisés' },
-    { number: '100%', label: 'Clients satisfaits' },
+    { number: '100%', label: 'Satisfactions' },
     { number: '24/7', label: 'Support technique' },
   ];
 
@@ -179,7 +179,6 @@ const About: React.FC = () => {
             <div className="bg-white/5 backdrop-blur-sm border border-cyan-500/20 rounded-2xl p-8 hover:bg-white/10 hover:border-cyan-500/40 transition-all duration-300">
               <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
                 <CheckCircle className="text-cyan-400" size={28} />
-                Mon Approche
               </h3>
               <div className="space-y-4">
                 <div className="flex items-start gap-4">

@@ -36,11 +36,11 @@ const ChatBot: React.FC = () => {
         (item) => item.id === 'kb-001'
       );
       const greetingMessage = greetingItem
-        ? `Bonjour ! Je suis l'assistant virtuel de Leonce Ouattara Studio. ${greetingItem.content.substring(
+        ? `Bonjour ! Je suis Larry de lOS votre assistant. ${greetingItem.content.substring(
             0,
             150
           )}... Comment puis-je vous aider aujourd'hui ?`
-        : "Bonjour ! Je suis l'assistant virtuel de Leonce Ouattara Studio. Comment puis-je vous aider aujourd'hui ?";
+        : "Bonjour ! Je suis Larry de lOS votre assistant. Comment puis-je vous aider aujourd'hui ?";
       addMessage(greetingMessage, 'bot');
     }
   }, [isOpen, loading, chatbotKnowledgeBase]);
@@ -97,7 +97,7 @@ const ChatBot: React.FC = () => {
       );
       return greetingItem
         ? `Bonjour ! ${greetingItem.content.substring(0, 200)}...`
-        : "Bonjour ! Je suis l'assistant virtuel de Leonce Ouattara Studio. Comment puis-je vous aider ?";
+        : "Bonjour ! Je suis Larry de lOS votre assistant. Comment puis-je vous aider ?";
     }
 
     if (
@@ -115,7 +115,7 @@ const ChatBot: React.FC = () => {
       );
 
       return `Nos services principaux :\n\n📱 ${
-        webItem?.title || 'Développement Web'
+        webItem?.title || 'Digitalisation de processus'
       } : ${webItem?.content.substring(0, 120)}...\n\n💼 ${
         metierItem?.title || 'Applications Métiers'
       } : ${metierItem?.content.substring(0, 120)}...\n\n🎨 ${
@@ -138,7 +138,7 @@ const ChatBot: React.FC = () => {
       );
       return (
         contactItem?.content ||
-        'Contactez-nous par email à contact@leonce-ouattara.com ou planifiez un appel gratuit via notre calendrier en ligne.'
+        'Contactez-nous par email à contact@leonceouattarastudiogroup.site ou planifiez un appel gratuit via notre calendrier en ligne.'
       );
     }
 
@@ -154,7 +154,7 @@ const ChatBot: React.FC = () => {
       );
       return (
         pricingItem?.content ||
-        'Nos tarifs sont adaptés aux PME. Demandez un devis personnalisé gratuit pour votre projet.'
+        'Nos tarifs sont adaptés à votre secteur. Demandez un devis personnalisé gratuit pour votre projet.'
       );
     }
 
@@ -170,7 +170,7 @@ const ChatBot: React.FC = () => {
       );
       return (
         timelineItem?.content ||
-        'Les délais varient selon le projet. En général : Site vitrine (2-4 semaines), E-commerce (4-8 semaines), Application métier (6-12 semaines).'
+        'Les délais varient selon le projet. En général : Digitalisation de processus (2-4 semaines), Développement portail web (4-8 semaines), Application métier (6-12 semaines), Intégration & développement systèmes de paiement (3-5 semaines), Optimisation Système d\'informations (2-5 semaines) '
       );
     }
 
@@ -201,7 +201,7 @@ const ChatBot: React.FC = () => {
       );
       return (
         portfolioItem?.content ||
-        'Consultez notre portfolio pour découvrir nos réalisations : e-commerce B2B, CRM hôtelier, plateforme bancaire, etc.'
+        'Consultez notre portfolio pour découvrir nos réalisations'
       );
     }
 
@@ -214,7 +214,7 @@ const ChatBot: React.FC = () => {
       const cmsItem = chatbotKnowledgeBase.find((item) => item.id === 'kb-011');
       return (
         cmsItem?.content ||
-        'Nous maîtrisons WordPress, Strapi et autres CMS pour que vous puissiez gérer vos contenus facilement.'
+        'Pour vos sites web, nous maîtrisons WordPress, Strapi et autres CMS pour que vous puissiez gérer vos contenus facilement.'
       );
     }
 
@@ -229,7 +229,7 @@ const ChatBot: React.FC = () => {
       );
       return (
         maintenanceItem?.content ||
-        'Nos forfaits maintenance incluent mises à jour, monitoring 24/7 et support technique à partir de 200€/mois.'
+        'Nos forfaits maintenance incluent mises à jour, monitoring 24/7 et support technique.'
       );
     }
 
@@ -283,7 +283,7 @@ const ChatBot: React.FC = () => {
         );
         response =
           webItem?.content ||
-          "Nos services incluent le développement web, les applications métiers, le design UX/UI et l'architecture cloud.";
+          "Nos services incluent le développement de portail web, les applications métiers, la digitalisation de processus et l'optimisation de système d'information.";
       } else if (reply.includes('Tarifs')) {
         const pricingItem = chatbotKnowledgeBase.find(
           (item) => item.id === 'kb-007'
