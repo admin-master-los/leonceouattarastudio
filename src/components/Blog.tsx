@@ -221,12 +221,7 @@ const Blog: React.FC = () => {
                       <Clock size={16} />
                       <span>{mainArticle.read_time || '5 min'}</span>
                     </div>
-                    {mainArticle.views && (
-                      <div className="flex items-center gap-2">
-                        <Eye size={16} />
-                        <span>{mainArticle.views}</span>
-                      </div>
-                    )}
+                    
                   </div>
 
                   {/* Arrow CTA */}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import * as LucideIcons from 'lucide-react';
 import { useSectors } from '../lib/useSupabaseData';
 
@@ -236,20 +237,17 @@ const Sectors: React.FC = () => {
             Nous nous adaptons à tous les domaines d'activité. Contactez-nous
             pour discuter de vos besoins spécifiques.
           </p>
-          <button
-            onClick={() =>
-              document
-                .querySelector('#contact')
-                ?.scrollIntoView({ behavior: 'smooth' })
-            }
-            className="bg-gradient-to-r from-cyan-500 to-purple-500 text-white px-8 py-4 rounded-full hover:shadow-xl hover:shadow-cyan-500/25 transition-all duration-300 font-semibold text-lg hover:scale-105 inline-flex items-center gap-2 relative overflow-hidden group"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <span className="relative z-10 flex items-center gap-2">
-              <LucideIcons.Calendar size={20} />
-              Planifier un échange
-            </span>
-          </button>
+          <Link
+                to="/reserver"
+                className="bg-gradient-to-r from-cyan-500 to-purple-500 text-white px-8 py-4 rounded-full hover:shadow-xl hover:shadow-cyan-500/25 transition-all duration-300 font-semibold text-lg hover:scale-105 inline-flex items-center gap-2 relative overflow-hidden group"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <span className="relative z-10 flex items-center gap-2">
+		      <LucideIcons.Calendar size={20} />
+		      Planifier un échange
+            	</span>
+              </Link>
+        
         </div>
       </div>
 

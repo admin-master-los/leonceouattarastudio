@@ -288,14 +288,14 @@ const BlogArticlePage: React.FC = () => {
         author: {
           '@type': 'Person',
           name: post.author || 'Leonce Ouattara',
-          url: 'https://leonceouattara.com',
+          url: 'https://www.linkedin.com/in/leonce-ouattara/',
         },
         publisher: {
           '@type': 'Organization',
           name: 'Leonce Ouattara Studio',
           logo: {
             '@type': 'ImageObject',
-            url: 'https://leonceouattara.com/logo.png',
+            url: 'https://leonceouattarastudiogroup.site/public/Leonce_Ouattara_Studio_Logo.png',
           },
         },
         mainEntityOfPage: {
@@ -311,7 +311,7 @@ const BlogArticlePage: React.FC = () => {
     }
 
     return () => {
-      document.title = 'Leonce Ouattara - Portfolio';
+      document.title = 'Leonce Ouattara - Digitaliser vos processus';
       // Nettoyer Schema.org
       const schemaScript = document.querySelector('script[type="application/ld+json"]');
       if (schemaScript) {
@@ -438,14 +438,13 @@ const BlogArticlePage: React.FC = () => {
             </Link>
 
             {/* Bouton Prendre RDV */}
-            <a
-              href="/#contact"
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-xl hover:shadow-lg hover:shadow-cyan-500/50 transition-all font-medium"
-            >
-              <Phone size={20} />
-              <span className="hidden sm:inline">Prendre RDV</span>
-              <span className="sm:hidden">RDV</span>
-            </a>
+            <Link
+                to="/reserver"
+                className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full hover:shadow-lg hover:shadow-cyan-500/50 transition-all duration-300"
+              >
+                <Calendar size={18} />
+                <span className="font-semibold">Prendre RDV</span>
+              </Link>
           </div>
         </div>
       </nav>
@@ -895,7 +894,7 @@ const BlogArticlePage: React.FC = () => {
                         </div>
                         <div className="flex items-center gap-1">
                           <Eye size={12} />
-                          {similarPost.views || 0}
+                          {similarPost.views} vues
                         </div>
                       </div>
                     </div>
