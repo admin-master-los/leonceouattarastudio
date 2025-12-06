@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
+  Calendar,
   ExternalLink,
   Github,
   TrendingUp,
@@ -76,7 +78,7 @@ const Portfolio: React.FC = () => {
             </span>
           </h2>
           <p className="text-xl text-gray-400 max-w-3xl mx-auto">
-            Découvrez quelques-unes de mes réalisations les plus impactantes
+            Découvrez quelques-unes de nos réalisations les plus impactantes
           </p>
         </div>
 
@@ -282,20 +284,17 @@ const Portfolio: React.FC = () => {
                 </div>
 
                 {/* CTA Button - Style Capture 1 */}
-                <button
-                  onClick={() =>
-                    document
-                      .querySelector('#contact')
-                      ?.scrollIntoView({ behavior: 'smooth' })
-                  }
-                  className="group relative px-12 py-5 bg-transparent border-2 border-cyan-400 text-white rounded-lg overflow-hidden transition-all duration-300 hover:border-cyan-300 font-semibold text-lg"
+                <Link
+                to="/reserver" target="_blank"
+		className="group relative px-12 py-5 bg-transparent border-2 border-cyan-400 text-white rounded-lg overflow-hidden transition-all duration-300 hover:border-cyan-300 font-semibold text-lg"
                 >
-                  <span className="relative z-10 flex items-center gap-3">
-                    {selectedProject.content_project_modal.cta_text}
-                    <ExternalLink size={20} className="group-hover:translate-x-1 transition-transform" />
-                  </span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-purple-500 opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
-                </button>
+		        
+		        <span className="relative z-10 flex items-center gap-3">
+		            {selectedProject.content_project_modal.cta_text}
+		            <ExternalLink size={20} className="group-hover:translate-x-1 transition-transform" />
+		        </span>
+		        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-purple-500 opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
+               </Link>
 
                 {/* Metrics en bas - Style Capture 1 avec étoiles/awards */}
                 <div className="absolute bottom-12 left-0 right-0 px-8">
@@ -515,19 +514,6 @@ const Portfolio: React.FC = () => {
                       Discutons de vos objectifs et créons ensemble une solution sur-mesure
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                      <button
-                        onClick={() => {
-                          closeProjectModal();
-                          setTimeout(() => {
-                            document
-                              .querySelector('#contact')
-                              ?.scrollIntoView({ behavior: 'smooth' });
-                          }, 300);
-                        }}
-                        className="px-10 py-4 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-xl font-semibold text-lg hover:shadow-2xl hover:shadow-cyan-500/50 transition-all duration-300 hover:scale-105"
-                      >
-                        Démarrer un projet
-                      </button>
                       {selectedProject.content_project_modal.demo_link &&
                         selectedProject.content_project_modal.demo_link !== '#' && (
                           <a
@@ -536,7 +522,7 @@ const Portfolio: React.FC = () => {
                             rel="noopener noreferrer"
                             className="px-10 py-4 bg-white/10 backdrop-blur-sm border border-white/20 text-white rounded-xl font-semibold text-lg hover:bg-white/20 transition-all duration-300 flex items-center justify-center gap-2"
                           >
-                            Voir la démo
+                            Planifier un RDV pour ce projet
                             <ExternalLink size={20} />
                           </a>
                         )}
