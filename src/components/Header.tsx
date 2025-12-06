@@ -137,7 +137,7 @@ const Header: React.FC = () => {
               <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <span className="relative z-10 flex items-center gap-2">
                 <Phone size={16} />
-                Planifier un Appel
+                Demarrer un projet
               </span>
             </button>
           </div>
