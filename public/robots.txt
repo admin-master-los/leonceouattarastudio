@@ -6,8 +6,8 @@ Allow: /
 Allow: /reserver
 Allow: /blog
 Allow: /#services
-Allow: /#setors
-Allow: /#projects
+Allow: /#sectors
+Allow: /#portfolio
 Allow: /#contact
 
 # Interdire les pages admin
@@ -18,7 +18,7 @@ Disallow: /admin/*
 Disallow: /api/
 
 # Interdire les fichiers de build
-Disallow: /assets/
+# Disallow: /assets/
 
 # Sitemap
 Sitemap: https://leonceouattarastudiogroup.site/sitemap.xml
