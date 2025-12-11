@@ -178,55 +178,60 @@ const DateTimeSelection: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
+    <div className="space-y-6 sm:space-y-8 px-2 sm:px-0">
+      {/* Header - Responsive */}
       <div className="text-center">
-        <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-600 mb-3">
+        <h2 className="text-2xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-600 mb-2 sm:mb-3 px-4">
           Choisissez votre créneau
         </h2>
-        <p className="text-gray-400 max-w-2xl mx-auto">
-          Service : <span className="text-white font-semibold">{bookingData.service?.name}</span> ({bookingData.service?.duration} min)
+        <p className="text-sm sm:text-base text-gray-400 max-w-2xl mx-auto px-4">
+          Service : <span className="text-white font-semibold">{bookingData.service?.name}</span> 
+          <span className="hidden xs:inline"> ({bookingData.service?.duration} min)</span>
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Calendrier */}
-        <div className="bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold text-white flex items-center gap-2">
-              <Calendar className="w-6 h-6 text-cyan-400" />
-              Sélectionnez une date
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+        {/* Calendrier - Responsive */}
+        <div className="bg-white/5 backdrop-blur-lg rounded-xl sm:rounded-2xl border border-white/10 p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-3">
+            <h3 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+              <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-400" />
+              <span className="hidden xs:inline">Sélectionnez une date</span>
+              <span className="xs:hidden">Date</span>
             </h3>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
               <button
                 onClick={prevMonth}
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                className="p-1.5 sm:p-2 hover:bg-white/10 rounded-lg transition-colors"
+                aria-label="Mois précédent"
               >
-                <ChevronLeft className="w-5 h-5 text-white" />
+                <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </button>
-              <span className="text-white font-semibold min-w-[180px] text-center">
+              <span className="text-white font-semibold text-sm sm:text-base min-w-[140px] sm:min-w-[180px] text-center">
                 {monthNames[currentMonth]} {currentYear}
               </span>
               <button
                 onClick={nextMonth}
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                className="p-1.5 sm:p-2 hover:bg-white/10 rounded-lg transition-colors"
+                aria-label="Mois suivant"
               >
-                <ChevronRight className="w-5 h-5 text-white" />
+                <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </button>
             </div>
           </div>
 
-          {/* Jours de la semaine */}
-          <div className="grid grid-cols-7 gap-2 mb-2">
-            {['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'].map((day) => (
-              <div key={day} className="text-center text-gray-400 text-sm font-medium py-2">
-                {day}
+          {/* Jours de la semaine - Responsive */}
+          <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-2">
+            {['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'].map((day, idx) => (
+              <div key={day} className="text-center text-gray-400 text-xs sm:text-sm font-medium py-1 sm:py-2">
+                <span className="hidden xs:inline">{day}</span>
+                <span className="xs:hidden">{['D', 'L', 'M', 'M', 'J', 'V', 'S'][idx]}</span>
               </div>
             ))}
           </div>
 
-          {/* Jours du mois */}
-          <div className="grid grid-cols-7 gap-2">
+          {/* Jours du mois - Responsive */}
+          <div className="grid grid-cols-7 gap-1 sm:gap-2">
             {/* Espaces vides avant le premier jour */}
             {Array.from({ length: firstDayOfMonth }).map((_, i) => (
               <div key={`empty-${i}`} />
@@ -245,14 +250,14 @@ const DateTimeSelection: React.FC = () => {
                   onClick={() => isAvailable && handleDateSelect(day)}
                   disabled={!isAvailable}
                   className={`
-                    aspect-square rounded-lg flex items-center justify-center text-sm font-medium transition-all
+                    aspect-square rounded-md sm:rounded-lg flex items-center justify-center text-xs sm:text-sm font-medium transition-all
                     ${isSelected
-                      ? 'bg-gradient-to-r from-cyan-500 to-purple-600 text-white scale-110 shadow-lg'
+                      ? 'bg-gradient-to-r from-cyan-500 to-purple-600 text-white scale-105 sm:scale-110 shadow-lg'
                       : isAvailable
                       ? 'bg-white/5 text-white hover:bg-white/10 hover:scale-105'
                       : 'bg-transparent text-gray-600 cursor-not-allowed'
                     }
-                    ${isToday && !isSelected ? 'ring-2 ring-cyan-500' : ''}
+                    ${isToday && !isSelected ? 'ring-1 sm:ring-2 ring-cyan-500' : ''}
                   `}
                 >
                   {day.getDate()}
@@ -261,52 +266,53 @@ const DateTimeSelection: React.FC = () => {
             })}
           </div>
 
-          {/* Légende */}
-          <div className="mt-6 pt-6 border-t border-white/10 flex items-start gap-4 text-sm">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded bg-gradient-to-r from-cyan-500 to-purple-600" />
+          {/* Légende - Responsive */}
+          <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-white/10 flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <div className="w-3 h-3 sm:w-4 sm:h-4 rounded bg-gradient-to-r from-cyan-500 to-purple-600" />
               <span className="text-gray-400">Sélectionné</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded ring-2 ring-cyan-500 bg-white/5" />
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <div className="w-3 h-3 sm:w-4 sm:h-4 rounded ring-1 sm:ring-2 ring-cyan-500 bg-white/5" />
               <span className="text-gray-400">Aujourd'hui</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded bg-gray-600" />
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <div className="w-3 h-3 sm:w-4 sm:h-4 rounded bg-gray-600" />
               <span className="text-gray-400">Indisponible</span>
             </div>
           </div>
         </div>
 
-        {/* Créneaux horaires */}
-        <div className="bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 p-6">
-          <h3 className="text-xl font-bold text-white flex items-center gap-2 mb-6">
-            <Clock className="w-6 h-6 text-purple-400" />
-            Choisissez une heure
+        {/* Créneaux horaires - Responsive */}
+        <div className="bg-white/5 backdrop-blur-lg rounded-xl sm:rounded-2xl border border-white/10 p-4 sm:p-6">
+          <h3 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2 mb-4 sm:mb-6">
+            <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" />
+            <span className="hidden xs:inline">Choisissez une heure</span>
+            <span className="xs:hidden">Heure</span>
           </h3>
 
           {!selectedDate ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <AlertCircle className="w-12 h-12 text-gray-600 mb-4" />
-              <p className="text-gray-400">Sélectionnez d'abord une date</p>
+            <div className="flex flex-col items-center justify-center py-8 sm:py-12 text-center">
+              <AlertCircle className="w-10 h-10 sm:w-12 sm:h-12 text-gray-600 mb-3 sm:mb-4" />
+              <p className="text-sm sm:text-base text-gray-400 px-4">Sélectionnez d'abord une date</p>
             </div>
           ) : loadingSlots ? (
-            <div className="flex items-center justify-center py-12">
+            <div className="flex items-center justify-center py-8 sm:py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-500" />
             </div>
           ) : availableSlots.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <AlertCircle className="w-12 h-12 text-orange-500 mb-4" />
-              <p className="text-gray-400">Aucun créneau disponible pour cette date</p>
+            <div className="flex flex-col items-center justify-center py-8 sm:py-12 text-center">
+              <AlertCircle className="w-10 h-10 sm:w-12 sm:h-12 text-orange-500 mb-3 sm:mb-4" />
+              <p className="text-sm sm:text-base text-gray-400 px-4">Aucun créneau disponible pour cette date</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3 max-h-[400px] overflow-y-auto pr-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 gap-2 sm:gap-3 max-h-[300px] sm:max-h-[400px] overflow-y-auto pr-1 sm:pr-2 scrollbar-thin scrollbar-thumb-cyan-500/20 scrollbar-track-transparent">
               {availableSlots.map((slot) => (
                 <button
                   key={slot}
                   onClick={() => handleTimeSelect(slot)}
                   className={`
-                    px-4 py-3 rounded-xl text-sm font-medium transition-all
+                    px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium transition-all
                     ${selectedTime === slot
                       ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white scale-105 shadow-lg'
                       : 'bg-white/5 text-white hover:bg-white/10 hover:scale-105 border border-white/10'
@@ -321,26 +327,37 @@ const DateTimeSelection: React.FC = () => {
         </div>
       </div>
 
-      {/* Navigation buttons */}
-      <div className="flex items-center justify-between pt-6">
+      {/* Navigation buttons - Responsive */}
+      <div className="flex items-center justify-between pt-4 sm:pt-6 gap-3">
         <button
           onClick={previousStep}
-          className="flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 rounded-xl text-white transition-all"
+          className="flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 rounded-lg sm:rounded-xl text-white text-sm sm:text-base transition-all"
         >
-          <ChevronLeft className="w-5 h-5" />
-          Retour
+          <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+          <span className="hidden xs:inline">Retour</span>
         </button>
 
         {selectedDate && selectedTime && (
           <button
             onClick={handleContinue}
-            className="group flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-xl text-white font-semibold shadow-lg hover:shadow-cyan-500/50 transition-all hover:scale-105"
+            className="group flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-lg sm:rounded-xl text-white text-sm sm:text-base font-semibold shadow-lg hover:shadow-cyan-500/50 transition-all hover:scale-105"
           >
             <span>Continuer</span>
-            <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
           </button>
         )}
       </div>
+
+      <style>{`
+        @media (min-width: 480px) {
+          .xs\\:inline {
+            display: inline;
+          }
+          .xs\\:hidden {
+            display: none;
+          }
+        }
+      `}</style>
     </div>
   );
 };

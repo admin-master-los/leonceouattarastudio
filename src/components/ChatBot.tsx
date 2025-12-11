@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { MessageCircle, X, Send } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { MessageCircle, X, Send, Loader2 } from 'lucide-react';
 import { useChatbotKnowledge } from '../lib/useSupabaseData';
+import { OpenAIService } from '../services/openaiService';
 
 interface Message {
   id: string;
@@ -9,18 +10,34 @@ interface Message {
   timestamp: Date;
 }
 
-type ChatbotKnowledgeItem = {
-  id: string;
-  title: string;
+interface ChatMessage {
+  role: 'system' | 'user' | 'assistant';
   content: string;
-  tags?: string[];
-};
+}
 
 const ChatBot: React.FC = () => {
   const { data: chatbotKnowledgeBase, loading } = useChatbotKnowledge();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [conversationHistory, setConversationHistory] = useState<ChatMessage[]>([]);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Initialiser OpenAI Service
+  const openAIService = useRef<OpenAIService | null>(null);
+
+  useEffect(() => {
+    // ⚠️ IMPORTANT: Remplacez par votre clé API OpenAI dans le fichier .env
+    // VITE_OPENAI_API_KEY=sk-proj-xxxxxxxxxxxxxxxxxxxxx
+    const apiKey = import.meta.env.VITE_OPENAI_API_KEY || '';
+    
+    if (apiKey) {
+      openAIService.current = new OpenAIService(apiKey);
+    } else {
+      console.warn('⚠️ Clé API OpenAI manquante. Ajoutez VITE_OPENAI_API_KEY dans votre fichier .env');
+    }
+  }, []);
 
   const quickReplies = [
     'Vos services',
@@ -30,20 +47,19 @@ const ChatBot: React.FC = () => {
     'Aide',
   ];
 
+  // Message de bienvenue
   useEffect(() => {
     if (isOpen && messages.length === 0 && !loading) {
-      const greetingItem = chatbotKnowledgeBase.find(
-        (item) => item.id === 'kb-001'
-      );
-      const greetingMessage = greetingItem
-        ? `Bonjour ! Je suis Larry de lOS votre assistant. ${greetingItem.content.substring(
-            0,
-            150
-          )}... Comment puis-je vous aider aujourd'hui ?`
-        : "Bonjour ! Je suis Larry de lOS votre assistant. Comment puis-je vous aider aujourd'hui ?";
+      const greetingMessage =
+        "Bonjour ! Je suis Larry de Leonce Ouattara Studio 👋\n\nJe suis là pour répondre à vos questions sur nos services de digitalisation de processus, nos tarifs, nos délais, et bien plus encore.\n\nComment puis-je vous aider aujourd'hui ?";
       addMessage(greetingMessage, 'bot');
     }
-  }, [isOpen, loading, chatbotKnowledgeBase]);
+  }, [isOpen, loading]);
+
+  // Auto-scroll vers le bas à chaque nouveau message
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isTyping]);
 
   const addMessage = (text: string, sender: 'user' | 'bot') => {
     const newMessage: Message = {
@@ -55,263 +71,72 @@ const ChatBot: React.FC = () => {
     setMessages((prev) => [...prev, newMessage]);
   };
 
-  const findRelevantKnowledge = (
-    userMessage: string
-  ): ChatbotKnowledgeItem | null => {
-    const message = userMessage.toLowerCase();
-
-    for (const item of chatbotKnowledgeBase) {
-      const titleLower = item.title.toLowerCase();
-      const contentLower = item.content.toLowerCase();
-      const tags = item.tags?.map((t) => t.toLowerCase()) || [];
-
-      for (const tag of tags) {
-        if (message.includes(tag)) {
-          return item;
-        }
-      }
-
-      if (
-        message
-          .split(' ')
-          .some((word) => titleLower.includes(word) && word.length > 3)
-      ) {
-        return item;
-      }
-    }
-
-    return null;
-  };
-
-  const getBotResponse = (userMessage: string): string => {
-    const message = userMessage.toLowerCase();
-
-    if (
-      message.includes('bonjour') ||
-      message.includes('salut') ||
-      message.includes('hello') ||
-      message.includes('bonsoir')
-    ) {
-      const greetingItem = chatbotKnowledgeBase.find(
-        (item) => item.id === 'kb-001'
-      );
-      return greetingItem
-        ? `Bonjour ! ${greetingItem.content.substring(0, 200)}...`
-        : "Bonjour ! Je suis Larry de lOS votre assistant. Comment puis-je vous aider ?";
-    }
-
-    if (
-      message.includes('service') ||
-      message.includes('que faites') ||
-      message.includes('développement') ||
-      message.includes('proposez')
-    ) {
-      const webItem = chatbotKnowledgeBase.find((item) => item.id === 'kb-002');
-      const metierItem = chatbotKnowledgeBase.find(
-        (item) => item.id === 'kb-003'
-      );
-      const designItem = chatbotKnowledgeBase.find(
-        (item) => item.id === 'kb-004'
-      );
-
-      return `Nos services principaux :\n\n📱 ${
-        webItem?.title || 'Digitalisation de processus'
-      } : ${webItem?.content.substring(0, 120)}...\n\n💼 ${
-        metierItem?.title || 'Applications Métiers'
-      } : ${metierItem?.content.substring(0, 120)}...\n\n🎨 ${
-        designItem?.title || 'UX/UI Design'
-      } : ${designItem?.content.substring(
-        0,
-        120
-      )}...\n\nQue souhaitez-vous savoir de plus précis ?`;
-    }
-
-    if (
-      message.includes('contact') ||
-      message.includes('joindre') ||
-      message.includes('appel') ||
-      message.includes('téléphone') ||
-      message.includes('email')
-    ) {
-      const contactItem = chatbotKnowledgeBase.find(
-        (item) => item.id === 'kb-009'
-      );
-      return (
-        contactItem?.content ||
-        'Contactez-nous par email à contact@leonceouattarastudiogroup.site ou planifiez un appel gratuit via notre calendrier en ligne.'
-      );
-    }
-
-    if (
-      message.includes('tarif') ||
-      message.includes('prix') ||
-      message.includes('coût') ||
-      message.includes('devis') ||
-      message.includes('budget')
-    ) {
-      const pricingItem = chatbotKnowledgeBase.find(
-        (item) => item.id === 'kb-007'
-      );
-      return (
-        pricingItem?.content ||
-        'Nos tarifs sont adaptés à votre secteur. Demandez un devis personnalisé gratuit pour votre projet.'
-      );
-    }
-
-    if (
-      message.includes('délai') ||
-      message.includes('durée') ||
-      message.includes('temps') ||
-      message.includes('combien de temps') ||
-      message.includes('quand')
-    ) {
-      const timelineItem = chatbotKnowledgeBase.find(
-        (item) => item.id === 'kb-006'
-      );
-      return (
-        timelineItem?.content ||
-        'Les délais varient selon le projet. En général : Digitalisation de processus (2-4 semaines), Développement portail web (4-8 semaines), Application métier (6-12 semaines), Intégration & développement systèmes de paiement (3-5 semaines), Optimisation Système d\'informations (2-5 semaines) '
-      );
-    }
-
-    if (
-      message.includes('rgpd') ||
-      message.includes('sécurité') ||
-      message.includes('données') ||
-      message.includes('conformité')
-    ) {
-      const rgpdItem = chatbotKnowledgeBase.find(
-        (item) => item.id === 'kb-008'
-      );
-      return (
-        rgpdItem?.content ||
-        'Nous garantissons la conformité RGPD et la sécurité de vos données avec chiffrement et hébergement sécurisé.'
-      );
-    }
-
-    if (
-      message.includes('portfolio') ||
-      message.includes('projet') ||
-      message.includes('réalisation') ||
-      message.includes('exemple') ||
-      message.includes('cas client')
-    ) {
-      const portfolioItem = chatbotKnowledgeBase.find(
-        (item) => item.id === 'kb-010'
-      );
-      return (
-        portfolioItem?.content ||
-        'Consultez notre portfolio pour découvrir nos réalisations'
-      );
-    }
-
-    if (
-      message.includes('cms') ||
-      message.includes('wordpress') ||
-      message.includes('contenu') ||
-      message.includes('gestion')
-    ) {
-      const cmsItem = chatbotKnowledgeBase.find((item) => item.id === 'kb-011');
-      return (
-        cmsItem?.content ||
-        'Pour vos sites web, nous maîtrisons WordPress, Strapi et autres CMS pour que vous puissiez gérer vos contenus facilement.'
-      );
-    }
-
-    if (
-      message.includes('maintenance') ||
-      message.includes('hébergement') ||
-      message.includes('support') ||
-      message.includes('sauvegarde')
-    ) {
-      const maintenanceItem = chatbotKnowledgeBase.find(
-        (item) => item.id === 'kb-012'
-      );
-      return (
-        maintenanceItem?.content ||
-        'Nos forfaits maintenance incluent mises à jour, monitoring 24/7 et support technique.'
-      );
-    }
-
-    if (
-      message.includes('processus') ||
-      message.includes('méthode') ||
-      message.includes('comment') ||
-      message.includes('étapes')
-    ) {
-      const processItem = chatbotKnowledgeBase.find(
-        (item) => item.id === 'kb-005'
-      );
-      return (
-        processItem?.content ||
-        'Nous travaillons en Agile avec des sprints de 2 semaines. Vous êtes impliqué à chaque étape.'
-      );
-    }
-
-    if (message.includes('aide') || message.includes('help')) {
-      return 'Je peux vous renseigner sur : les services, les tarifs, les délais, le processus, la sécurité RGPD, le portfolio, les CMS, la maintenance, et comment nous contacter. Que souhaitez-vous savoir ?';
-    }
-
-    const relevantKnowledge = findRelevantKnowledge(userMessage);
-    if (relevantKnowledge) {
-      return relevantKnowledge.content;
-    }
-
-    return "Je ne suis pas sûr de comprendre. Pouvez-vous reformuler votre question ? Ou tapez 'aide' pour voir les sujets que je peux traiter.";
-  };
-
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!inputText.trim()) return;
 
-    addMessage(inputText, 'user');
-    setInputText('');
+    // Vérifier si OpenAI est configuré
+    if (!openAIService.current) {
+      addMessage(inputText, 'user');
+      setInputText('');
+      setTimeout(() => {
+        addMessage(
+          "⚠️ Le service IA n'est pas configuré. Veuillez contacter l'administrateur ou nous écrire directement à contact@leonceouattarastudiogroup.site",
+          'bot'
+        );
+      }, 500);
+      return;
+    }
 
-    setTimeout(() => {
-      const response = getBotResponse(inputText);
+    const userMessage = inputText.trim();
+    addMessage(userMessage, 'user');
+    setInputText('');
+    setIsTyping(true);
+
+    // Ajouter à l'historique de conversation
+    const newHistory: ChatMessage[] = [
+      ...conversationHistory,
+      { role: 'user', content: userMessage },
+    ];
+
+    try {
+      const response = await openAIService.current.sendMessage(
+        userMessage,
+        conversationHistory,
+        chatbotKnowledgeBase
+      );
+
+      // Ajouter la réponse à l'historique
+      setConversationHistory([
+        ...newHistory,
+        { role: 'assistant', content: response },
+      ]);
+
       addMessage(response, 'bot');
-    }, 1000);
+    } catch (error) {
+      console.error('Erreur OpenAI:', error);
+      addMessage(
+        "Désolé, je rencontre un problème technique 😔\n\nVeuillez réessayer dans quelques instants ou nous contacter directement :\n📧 contact@leonceouattarastudiogroup.site\n📞 Ou planifiez un appel via notre calendrier",
+        'bot'
+      );
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   const handleQuickReply = (reply: string) => {
-    addMessage(reply, 'user');
-
+    setInputText(reply);
+    // Auto-envoyer après un court délai
     setTimeout(() => {
-      let response = '';
-      if (reply.includes('services')) {
-        const webItem = chatbotKnowledgeBase.find(
-          (item) => item.id === 'kb-002'
-        );
-        response =
-          webItem?.content ||
-          "Nos services incluent le développement de portail web, les applications métiers, la digitalisation de processus et l'optimisation de système d'information.";
-      } else if (reply.includes('Tarifs')) {
-        const pricingItem = chatbotKnowledgeBase.find(
-          (item) => item.id === 'kb-007'
-        );
-        response =
-          pricingItem?.content ||
-          'Demandez un devis personnalisé gratuit pour votre projet.';
-      } else if (reply.includes('Délais')) {
-        const timelineItem = chatbotKnowledgeBase.find(
-          (item) => item.id === 'kb-006'
-        );
-        response =
-          timelineItem?.content ||
-          'Les délais dépendent du projet. Contactez-nous pour un planning détaillé.';
-      } else if (reply.includes('contact')) {
-        const contactItem = chatbotKnowledgeBase.find(
-          (item) => item.id === 'kb-009'
-        );
-        response =
-          contactItem?.content ||
-          'Contactez-nous à contact@leonce-ouattara.com';
-      } else {
-        response =
-          'Je peux vous renseigner sur : les services, les tarifs, les délais, comment prendre contact, et répondre à vos questions générales. Que souhaitez-vous savoir ?';
+      if (openAIService.current) {
+        handleSendMessage();
       }
+    }, 100);
+  };
 
-      addMessage(response, 'bot');
-    }, 1000);
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !isTyping) {
+      handleSendMessage();
+    }
   };
 
   return (
@@ -352,11 +177,11 @@ const ChatBot: React.FC = () => {
             </div>
             <div className="min-w-0 flex-1">
               <h4 className="text-white font-bold text-base sm:text-lg truncate">
-                Leonce Ouattara Studio
+                Larry - Assistant lOS
               </h4>
               <p className="text-cyan-400 text-xs sm:text-sm flex items-center gap-1.5">
                 <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-green-500 rounded-full animate-pulse flex-shrink-0"></span>
-                En ligne
+                {openAIService.current ? 'En ligne' : 'Configuration requise'}
               </p>
             </div>
           </div>
@@ -392,8 +217,20 @@ const ChatBot: React.FC = () => {
             </div>
           ))}
 
+          {/* Typing Indicator */}
+          {isTyping && (
+            <div className="flex justify-start">
+              <div className="max-w-[85%] sm:max-w-[80%] md:max-w-[75%] px-3.5 sm:px-4 md:px-5 py-2.5 sm:py-3 rounded-2xl bg-white/10 border border-gray-700/50 backdrop-blur-sm rounded-bl-sm">
+                <div className="flex items-center gap-2">
+                  <Loader2 size={16} className="animate-spin text-cyan-400" />
+                  <span className="text-gray-400 text-sm">Larry écrit...</span>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Quick Replies - Responsive */}
-          {messages.length === 1 && (
+          {messages.length === 1 && !isTyping && (
             <div className="space-y-2.5 sm:space-y-3 pt-3 sm:pt-4">
               <p className="text-gray-400 text-xs sm:text-sm font-medium px-1">
                 Suggestions rapides :
@@ -403,7 +240,8 @@ const ChatBot: React.FC = () => {
                   <button
                     key={reply}
                     onClick={() => handleQuickReply(reply)}
-                    className="px-3 sm:px-4 py-2 sm:py-2.5 bg-white/5 border border-cyan-500/40 text-cyan-300 rounded-full text-xs sm:text-sm hover:bg-cyan-500/20 hover:border-cyan-400 transition-all duration-200 hover:scale-105 font-medium"
+                    disabled={isTyping}
+                    className="px-3 sm:px-4 py-2 sm:py-2.5 bg-white/5 border border-cyan-500/40 text-cyan-300 rounded-full text-xs sm:text-sm hover:bg-cyan-500/20 hover:border-cyan-400 transition-all duration-200 hover:scale-105 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {reply}
                   </button>
@@ -411,6 +249,9 @@ const ChatBot: React.FC = () => {
               </div>
             </div>
           )}
+
+          {/* Anchor pour auto-scroll */}
+          <div ref={messagesEndRef} />
         </div>
 
         {/* Input - Responsive avec padding adapté pour mobile */}
@@ -420,18 +261,23 @@ const ChatBot: React.FC = () => {
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+              onKeyPress={handleKeyPress}
               placeholder="Tapez votre message..."
+              disabled={isTyping}
               aria-label="Saisir un message pour Leonce Ouattara Studio"
-              className="flex-1 bg-white/5 border border-gray-700/50 rounded-full px-4 sm:px-5 py-2.5 sm:py-3 md:py-3.5 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/60 focus:ring-2 focus:ring-cyan-500/20 text-sm sm:text-base transition-all duration-200"
+              className="flex-1 bg-white/5 border border-gray-700/50 rounded-full px-4 sm:px-5 py-2.5 sm:py-3 md:py-3.5 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/60 focus:ring-2 focus:ring-cyan-500/20 text-sm sm:text-base transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             />
             <button
               onClick={handleSendMessage}
-              disabled={!inputText.trim()}
+              disabled={!inputText.trim() || isTyping}
               aria-label="Envoyer le message"
               className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed hover:scale-110 hover:shadow-lg hover:shadow-cyan-500/50 transition-all duration-200 active:scale-95 flex-shrink-0"
             >
-              <Send size={18} className="sm:w-5 sm:h-5 text-white" />
+              {isTyping ? (
+                <Loader2 size={18} className="sm:w-5 sm:h-5 text-white animate-spin" />
+              ) : (
+                <Send size={18} className="sm:w-5 sm:h-5 text-white" />
+              )}
             </button>
           </div>
         </div>
