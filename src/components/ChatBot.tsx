@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageCircle, X, Send, Loader2 } from 'lucide-react';
 import { useChatbotKnowledge } from '../lib/useSupabaseData';
-import { OpenAIService } from '../services/openaiService';
 
 interface Message {
   id: string;
@@ -22,22 +21,8 @@ const ChatBot: React.FC = () => {
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [conversationHistory, setConversationHistory] = useState<ChatMessage[]>([]);
+  const [isConfigured, setIsConfigured] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  // Initialiser OpenAI Service
-  const openAIService = useRef<OpenAIService | null>(null);
-
-  useEffect(() => {
-    // ⚠️ IMPORTANT: Remplacez par votre clé API OpenAI dans le fichier .env
-    // VITE_OPENAI_API_KEY=sk-proj-xxxxxxxxxxxxxxxxxxxxx
-    const apiKey = import.meta.env.VITE_OPENAI_API_KEY || '';
-    
-    if (apiKey) {
-      openAIService.current = new OpenAIService(apiKey);
-    } else {
-      console.warn('⚠️ Clé API OpenAI manquante. Ajoutez VITE_OPENAI_API_KEY dans votre fichier .env');
-    }
-  }, []);
 
   const quickReplies = [
     'Vos services',
@@ -72,20 +57,7 @@ const ChatBot: React.FC = () => {
   };
 
   const handleSendMessage = async () => {
-    if (!inputText.trim()) return;
-
-    // Vérifier si OpenAI est configuré
-    if (!openAIService.current) {
-      addMessage(inputText, 'user');
-      setInputText('');
-      setTimeout(() => {
-        addMessage(
-          "⚠️ Le service IA n'est pas configuré. Veuillez contacter l'administrateur ou nous écrire directement à contact@leonceouattarastudiogroup.site",
-          'bot'
-        );
-      }, 500);
-      return;
-    }
+    if (!inputText.trim() || isTyping) return;
 
     const userMessage = inputText.trim();
     addMessage(userMessage, 'user');
@@ -99,21 +71,52 @@ const ChatBot: React.FC = () => {
     ];
 
     try {
-      const response = await openAIService.current.sendMessage(
-        userMessage,
-        conversationHistory,
-        chatbotKnowledgeBase
-      );
+      // 🔥 APPEL À L'API CÔTÉ SERVEUR (sécurisé)
+      const response = await fetch('/api/chat-ai', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: userMessage,
+          conversationHistory: conversationHistory,
+          knowledgeBase: chatbotKnowledgeBase,
+        }),
+      });
 
-      // Ajouter la réponse à l'historique
-      setConversationHistory([
-        ...newHistory,
-        { role: 'assistant', content: response },
-      ]);
+      const data = await response.json();
 
-      addMessage(response, 'bot');
-    } catch (error) {
-      console.error('Erreur OpenAI:', error);
+      // Gérer les erreurs de configuration
+      if (!response.ok) {
+        if (data.configured === false) {
+          setIsConfigured(false);
+          addMessage(
+            "⚠️ Le service IA n'est pas configuré.\n\nVeuillez contacter l'administrateur ou nous écrire directement à :\n📧 contact@leonceouattarastudiogroup.site",
+            'bot'
+          );
+          return;
+        }
+        throw new Error(data.error || 'Erreur lors de l\'envoi du message');
+      }
+
+      if (data.success && data.reply) {
+        // Ajouter la réponse à l'historique
+        setConversationHistory([
+          ...newHistory,
+          { role: 'assistant', content: data.reply },
+        ]);
+
+        addMessage(data.reply, 'bot');
+
+        // Log des tokens (optionnel, pour debug)
+        if (data.usage) {
+          console.log('📊 Usage:', data.usage);
+        }
+      } else {
+        throw new Error('Réponse invalide du serveur');
+      }
+    } catch (error: any) {
+      console.error('❌ Erreur chatbot:', error);
       addMessage(
         "Désolé, je rencontre un problème technique 😔\n\nVeuillez réessayer dans quelques instants ou nous contacter directement :\n📧 contact@leonceouattarastudiogroup.site\n📞 Ou planifiez un appel via notre calendrier",
         'bot'
@@ -127,9 +130,7 @@ const ChatBot: React.FC = () => {
     setInputText(reply);
     // Auto-envoyer après un court délai
     setTimeout(() => {
-      if (openAIService.current) {
-        handleSendMessage();
-      }
+      handleSendMessage();
     }, 100);
   };
 
@@ -152,13 +153,13 @@ const ChatBot: React.FC = () => {
         <MessageCircle size={24} className="sm:w-7 sm:h-7" />
       </button>
 
-      {/* Chat Window - Responsive: Plein écran sur mobile, fenêtre sur desktop */}
+      {/* Chat Window - Responsive */}
       <div
         className={`fixed sm:absolute inset-0 sm:inset-auto sm:bottom-0 sm:right-0 w-full sm:w-[380px] md:w-[420px] lg:w-[480px] h-full sm:h-[500px] md:h-[600px] lg:h-[700px] bg-black/95 backdrop-blur-xl border-0 sm:border sm:border-cyan-500/30 rounded-none sm:rounded-3xl shadow-2xl transition-all duration-300 ${
           isOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0 pointer-events-none'
         } sm:origin-bottom-right overflow-hidden flex flex-col`}
       >
-        {/* Header - Responsive */}
+        {/* Header */}
         <div className="flex items-center justify-between p-4 sm:p-5 border-b border-gray-700/50 bg-gradient-to-r from-cyan-500/10 to-purple-500/10 flex-shrink-0">
           <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
             {/* Avatar */}
@@ -180,8 +181,8 @@ const ChatBot: React.FC = () => {
                 Larry - Assistant lOS
               </h4>
               <p className="text-cyan-400 text-xs sm:text-sm flex items-center gap-1.5">
-                <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-green-500 rounded-full animate-pulse flex-shrink-0"></span>
-                {openAIService.current ? 'En ligne' : 'Configuration requise'}
+                <span className={`w-2 h-2 sm:w-2.5 sm:h-2.5 ${isConfigured ? 'bg-green-500' : 'bg-yellow-500'} rounded-full animate-pulse flex-shrink-0`}></span>
+                {isConfigured ? 'En ligne' : 'Configuration requise'}
               </p>
             </div>
           </div>
@@ -194,7 +195,7 @@ const ChatBot: React.FC = () => {
           </button>
         </div>
 
-        {/* Messages - Zone flexible avec scroll optimisé */}
+        {/* Messages */}
         <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0icGF0dGVybiIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIxIiBmaWxsPSJyZ2JhKDI1NSwgMjU1LCAyNTUsIDAuMDMpIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI3BhdHRlcm4pIi8+PC9zdmc+')] scrollbar-thin scrollbar-thumb-cyan-500/20 scrollbar-track-transparent">
           {messages.map((message) => (
             <div
@@ -229,7 +230,7 @@ const ChatBot: React.FC = () => {
             </div>
           )}
 
-          {/* Quick Replies - Responsive */}
+          {/* Quick Replies */}
           {messages.length === 1 && !isTyping && (
             <div className="space-y-2.5 sm:space-y-3 pt-3 sm:pt-4">
               <p className="text-gray-400 text-xs sm:text-sm font-medium px-1">
@@ -250,12 +251,20 @@ const ChatBot: React.FC = () => {
             </div>
           )}
 
-          {/* Anchor pour auto-scroll */}
+          {/* Warning si non configuré */}
+          {!isConfigured && (
+            <div className="mt-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
+              <p className="text-yellow-400 text-xs sm:text-sm text-center">
+                ⚠️ Service IA non configuré. Contactez l'administrateur.
+              </p>
+            </div>
+          )}
+
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input - Responsive avec padding adapté pour mobile */}
-        <div className="p-3 sm:p-4 border-t border-gray-700/50 bg-black/50 flex-shrink-0 safe-area-bottom">
+        {/* Input */}
+        <div className="p-3 sm:p-4 border-t border-gray-700/50 bg-black/50 flex-shrink-0">
           <div className="flex gap-2 sm:gap-3 items-center">
             <input
               type="text"
@@ -263,13 +272,13 @@ const ChatBot: React.FC = () => {
               onChange={(e) => setInputText(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Tapez votre message..."
-              disabled={isTyping}
+              disabled={isTyping || !isConfigured}
               aria-label="Saisir un message pour Leonce Ouattara Studio"
               className="flex-1 bg-white/5 border border-gray-700/50 rounded-full px-4 sm:px-5 py-2.5 sm:py-3 md:py-3.5 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/60 focus:ring-2 focus:ring-cyan-500/20 text-sm sm:text-base transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             />
             <button
               onClick={handleSendMessage}
-              disabled={!inputText.trim() || isTyping}
+              disabled={!inputText.trim() || isTyping || !isConfigured}
               aria-label="Envoyer le message"
               className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed hover:scale-110 hover:shadow-lg hover:shadow-cyan-500/50 transition-all duration-200 active:scale-95 flex-shrink-0"
             >
