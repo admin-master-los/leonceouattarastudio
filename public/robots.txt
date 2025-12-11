@@ -3,6 +3,12 @@
 # Autoriser tous les robots
 User-agent: *
 Allow: /
+Allow: /reserver
+Allow: /blog
+Allow: /#services
+Allow: /#setors
+Allow: /#projects
+Allow: /#contact
 
 # Interdire les pages admin
 Disallow: /admin/

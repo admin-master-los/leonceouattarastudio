@@ -36,17 +36,16 @@
     <priority>0.7</priority>
   </url>
 
-  <!-- 
-  Ajouter d'autres pages ici :
+  <!-- Ajouter d'autres pages ici : -->
   
   <url>
-    <loc>https://leonceouattarastudiogroup.site/services</loc>
+    <loc>https://leonceouattarastudiogroup.site/#services</loc>
     <lastmod>2025-11-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   
-  Pour les articles de blog, ajoutez-les individuellement :
+  <!-- Pour les articles de blog, ajoutez-les individuellement : -->
   
   <url>
     <loc>https://leonceouattarastudiogroup.site/blog/article-slug</loc>
@@ -54,6 +53,6 @@
     <changefreq>never</changefreq>
     <priority>0.6</priority>
   </url>
-  -->
+  
 
 </urlset>

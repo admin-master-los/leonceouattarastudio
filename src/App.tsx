@@ -108,8 +108,8 @@ function App() {
                     <div className="min-h-screen bg-[#0A0A0B] text-white overflow-x-hidden">
                       {/* SEO pour page d'accueil */}
                       <SEO 
-                        title="Leonce Ouattara Studio - Digitalisation Secteur Financier en Afrique"
-                        description="Expert en développement web pour banques, assurances et microfinance en Afrique. Solutions digitales sur mesure pour transformation zéro papier. Expertise fintech Côte d'Ivoire."
+                        title="Leonce Ouattara Studio - Digitalisation Secteur Financier en Côte d'Ivoire"
+                        description="Expert en développement web pour banques, assurances et microfinance en Côte d'Ivoire. Solutions digitales sur mesure pour transformation zéro papier. Expertise fintech Côte d'Ivoire."
                         keywords="développement web, digitalisation bancaire, fintech Afrique, transformation digitale, banque numérique, assurance digitale, microfinance, Côte d'Ivoire, Abidjan, zéro papier"
                         url="https://leonceouattarastudiogroup.site"
                       />
