@@ -24,7 +24,7 @@ const TinyMCEEditor: React.FC<TinyMCEEditorProps> = ({
   return (
     <div className="tinymce-wrapper">
       <Editor
-        apiKey="bu54mzi9mcvwxpiejvgojjc3wb4eybm74111d2ej6lc7eztr"
+        apiKey="w2m65slfzpigxm0t970m8fodvhjqkuh7lhml9kpllok578j3"
         onInit={(evt, editor) => (editorRef.current = editor)}
         value={value}
         onEditorChange={onChange}
